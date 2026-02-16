@@ -73,7 +73,7 @@ export function PokerTransferSheet({
 					</SheetDescription>
 				</SheetHeader>
 
-				<div className="space-y-4 px-1 pt-4 pb-6">
+				<div className="space-y-4 px-5 pt-4 pb-6">
 					{/* 输入框 */}
 					<Input
 						ref={inputRef}

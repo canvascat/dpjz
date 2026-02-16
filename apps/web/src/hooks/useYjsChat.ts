@@ -113,7 +113,7 @@ export function useYjsChat(
 
 			const webrtcProvider = new WebrtcProvider(`dpjz-chat-${roomId}`, doc, {
 				signaling: [
-					import.meta.env.VITE_SIGNALING_URL ?? "ws://localhost:4444",
+					import.meta.env.VITE_SIGNALING_URL,
 				],
 			})
 

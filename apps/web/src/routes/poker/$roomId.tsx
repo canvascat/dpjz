@@ -23,10 +23,12 @@ function PokerRoom() {
 		transactions,
 		balances,
 		teaRate,
+		teaCap,
 		onlineUserIds,
 		connected,
 		transfer,
 		setTeaRate,
+		setTeaCap,
 	} = useYjsPoker(roomId, user)
 
 	// 转分弹窗目标
@@ -107,7 +109,11 @@ function PokerRoom() {
 				open={teaOpen}
 				currentRate={teaRate}
 				teaBalance={teaBalance}
-				onSave={setTeaRate}
+				teaCap={teaCap}
+				onSave={(rate, cap) => {
+					setTeaRate(rate)
+					setTeaCap(cap)
+				}}
 				onClose={() => setTeaOpen(false)}
 			/>
 		</div>

@@ -4,6 +4,7 @@ import type { IndexeddbPersistence } from 'y-indexeddb'
 import type { WebrtcProvider } from 'y-webrtc'
 
 
+import { TEA_CAP } from '@/lib/constants'
 import type { LocalUser } from '@/lib/user'
 
 // ─── 数据类型 ───────────────────────────────────────────
@@ -45,6 +46,8 @@ interface UseYjsPokerReturn {
 	balances: Balances
 	/** 当前茶位费率 (0~1) */
 	teaRate: number
+	/** 茶位费累计上限（分），达到后不再扣 */
+	teaCap: number
 	/** 在线成员 userId 集合 */
 	onlineUserIds: Set<string>
 	connected: boolean
@@ -52,6 +55,8 @@ interface UseYjsPokerReturn {
 	transfer: (toUserId: string, amount: number) => void
 	/** 修改茶位费率 */
 	setTeaRate: (rate: number) => void
+	/** 修改茶位费累计上限 */
+	setTeaCap: (cap: number) => void
 }
 
 // ─── 工具函数 ───────────────────────────────────────────
@@ -118,6 +123,7 @@ export function useYjsPoker(
 	const [transactions, setTransactions] = useState<Array<PokerTransaction>>([])
 	const [members, setMembers] = useState<Array<PokerMember>>([])
 	const [teaRate, setTeaRateState] = useState(0)
+	const [teaCap, setTeaCapState] = useState(TEA_CAP)
 	const [onlineUserIds, setOnlineUserIds] = useState<Set<string>>(new Set())
 	const [connected, setConnected] = useState(false)
 
@@ -152,6 +158,10 @@ export function useYjsPoker(
 		const syncSettings = () => {
 			const rate = settingsMap.get('teaRate')
 			setTeaRateState(typeof rate === 'number' ? rate : 0)
+			const cap = settingsMap.get('teaCap')
+			setTeaCapState(
+				typeof cap === 'number' && cap >= 1 ? cap : TEA_CAP,
+			)
 		}
 
 		transactionsArray.observeDeep(syncTransactions)
@@ -203,7 +213,7 @@ export function useYjsPoker(
 			)
 			const webrtcProvider = new WebrtcProvider(`dpjz-poker-${roomId}`, doc, {
 				signaling: [
-					import.meta.env.VITE_SIGNALING_URL ?? "ws://localhost:4444",
+					import.meta.env.VITE_SIGNALING_URL,
 				],
 			})
 
@@ -303,13 +313,24 @@ export function useYjsPoker(
 		if (amount <= 0) return
 
 		const from = localUserRef.current
-		// 查找接收者信息
 		const toMember = yjsRef.current.membersMap?.get(toUserId)
 		const toNickname = toMember?.get('nickname') || '???'
 		const toAvatarColor = toMember?.get('avatarColor') || '#3b82f6'
 
 		const currentRate = settingsMap.get('teaRate') ?? 0
-		const teaAmount = Math.round(amount * currentRate * 100) / 100
+		const cap = settingsMap.get('teaCap')
+		const effectiveCap =
+			typeof cap === 'number' && cap >= 1 ? cap : TEA_CAP
+		// 当前茶池累计（从流水汇总）
+		let currentTeaBalance = 0
+		transactionsArray.forEach((yMap) => {
+			currentTeaBalance += (yMap.get('teaAmount') as number) ?? 0
+		})
+		// 茶位费：整数，最少 1 分；累计达到上限后不再扣
+		const remainingCap = Math.max(0, effectiveCap - currentTeaBalance)
+		const rawTea = amount * currentRate
+		const teaAmountUncapped = rawTea > 0 ? Math.max(1, Math.floor(rawTea)) : 0
+		const teaAmount = Math.min(teaAmountUncapped, remainingCap)
 
 		doc.transact(() => {
 			const yMap = new Y.Map<string | number>()
@@ -338,14 +359,26 @@ export function useYjsPoker(
 		})
 	}, [])
 
+	// ── 修改茶位费累计上限 ──
+	const setTeaCap = useCallback((cap: number) => {
+		const { doc, settingsMap } = yjsRef.current
+		if (!doc || !settingsMap) return
+		const value = Math.max(1, Math.floor(cap))
+		doc.transact(() => {
+			settingsMap.set('teaCap', value)
+		})
+	}, [])
+
 	return {
 		members,
 		transactions,
 		balances,
 		teaRate,
+		teaCap,
 		onlineUserIds,
 		connected,
 		transfer,
 		setTeaRate,
+		setTeaCap,
 	}
 }
