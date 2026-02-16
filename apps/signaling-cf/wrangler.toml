@@ -1,0 +1,11 @@
+name = "dpjz-signaling"
+main = "src/index.ts"
+compatibility_date = "2025-01-01"
+
+[[durable_objects.bindings]]
+name = "SIGNALING_DO"
+class_name = "SignalingDO"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["SignalingDO"]

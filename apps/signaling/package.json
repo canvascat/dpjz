@@ -1,0 +1,22 @@
+{
+	"name": "signaling",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"build": "tsdown",
+		"dev": "node --watch src/index.ts",
+		"start": "node dist/index.mjs"
+	},
+	"dependencies": {
+		"lib0": "^0.2.117",
+		"ws": "^8.19.0"
+	},
+	"devDependencies": {
+		"@types/node": "^22.10.2",
+		"@types/ws": "^8.18.1",
+		"prettier": "^3.5.3",
+		"tsdown": "^0.20.3",
+		"tsx": "^4.19.2",
+		"typescript": "^5.7.2"
+	}
+}

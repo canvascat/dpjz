@@ -1,0 +1,28 @@
+{
+	"name": "dpjz",
+	"private": true,
+	"packageManager": "pnpm@11.0.0-dev.1005+sha512.91f84a392eea348ea4852a182912d2520273a4336f933b78cc44bc931eb999923c097e9433a9b355adc1f725725ea99082fc9f032a559df832632e764c92c798",
+	"scripts": {
+		"dev": "pnpm --filter web dev",
+		"build": "pnpm --filter web build",
+		"preview": "pnpm --filter web preview",
+		"test": "pnpm --filter web test",
+		"lint": "pnpm --filter web lint",
+		"format": "pnpm --filter web format",
+		"check": "pnpm --filter web check",
+		"signaling:start": "pnpm --filter signaling start",
+		"deploy:web": "pnpm --filter web build && pnpm --filter signaling-cf exec wrangler pages deploy ../../apps/web/dist --project-name=dpjz",
+		"deploy:signaling": "pnpm --filter signaling-cf deploy"
+	},
+	"devDependencies": {
+		"@tanstack/eslint-config": "^0.3.0",
+		"eslint": "^9.16.0",
+		"prettier": "^3.5.3",
+		"typescript": "^5.7.2"
+	},
+	"pnpm": {
+		"overrides": {
+			"vite": "npm:rolldown-vite@latest"
+		}
+	}
+}
