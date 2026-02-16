@@ -6,6 +6,7 @@
 		"dev": "vite",
 		"build": "vite build",
 		"preview": "vite preview",
+		"deploy": "vite build && wrangler pages deploy dist --project-name=dpjz",
 		"test": "vitest run",
 		"lint": "eslint",
 		"format": "prettier --check .",
@@ -46,6 +47,7 @@
 		"vite": "npm:rolldown-vite@latest",
 		"vite-plugin-pwa": "^1.2.0",
 		"vitest": "^3.0.5",
-		"workbox-window": "^7.4.0"
+		"workbox-window": "^7.4.0",
+		"wrangler": "^3.91.0"
 	}
 }
