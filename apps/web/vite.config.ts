@@ -23,11 +23,7 @@ export default defineConfig({
 				theme_color: '#ffffff',
 				background_color: '#ffffff',
 				icons: [
-					{
-						src: '/favicon.ico',
-						sizes: '64x64 32x32 24x24 16x16',
-						type: 'image/x-icon',
-					},
+					{ src: '/favicon-32.png', type: 'image/png', sizes: '32x32' },
 					{ src: '/logo192.png', type: 'image/png', sizes: '192x192' },
 					{ src: '/logo512.png', type: 'image/png', sizes: '512x512' },
 				],

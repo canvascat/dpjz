@@ -4,6 +4,7 @@
 	"type": "module",
 	"scripts": {
 		"dev": "vite",
+		"generate-icons": "node scripts/generate-icons.mjs",
 		"build": "vite build",
 		"preview": "vite preview",
 		"deploy": "vite build && wrangler pages deploy dist --project-name=dpjz",
@@ -43,6 +44,7 @@
 		"eslint": "^9.16.0",
 		"jsdom": "^27.0.0",
 		"prettier": "^3.5.3",
+		"sharp": "^0.34.5",
 		"typescript": "^5.7.2",
 		"vite": "npm:rolldown-vite@latest",
 		"vite-plugin-pwa": "^1.2.0",
