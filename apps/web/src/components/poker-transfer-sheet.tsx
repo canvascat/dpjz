@@ -1,9 +1,9 @@
 import { ArrowRight } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { PokerMember } from '@/hooks/useYjsPoker'
 
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { NumericKeypad } from '@/components/ui/numeric-keypad'
 import {
 	Sheet,
 	SheetContent,
@@ -28,14 +28,9 @@ export function PokerTransferSheet({
 	onClose,
 }: PokerTransferSheetProps) {
 	const [value, setValue] = useState('')
-	const inputRef = useRef<HTMLInputElement>(null)
 
-	// 打开时清空并聚焦
 	useEffect(() => {
-		if (target) {
-			setValue('')
-			setTimeout(() => inputRef.current?.focus(), 100)
-		}
+		if (target) setValue('')
 	}, [target])
 
 	const amount = Number(value)
@@ -74,20 +69,20 @@ export function PokerTransferSheet({
 				</SheetHeader>
 
 				<div className="space-y-4 px-5 pt-4 pb-6">
-					{/* 输入框 */}
-					<Input
-						ref={inputRef}
-						type="number"
-						inputMode="decimal"
-						min="1"
-						step="1"
+					{/* 页内数字键盘 */}
+					<NumericKeypad
 						value={value}
-						onChange={(e) => setValue(e.target.value)}
-						onKeyDown={(e) => {
-							if (e.key === 'Enter') handleConfirm()
+						onChange={(v) => {
+							if (v === '') {
+								setValue('')
+								return
+							}
+							const n = parseInt(v, 10)
+							if (!Number.isNaN(n)) setValue(String(Math.min(9999, n)))
 						}}
 						placeholder="输入分数"
-						className="min-h-[48px] text-center text-2xl font-semibold"
+						maxLength={4}
+						showDisplay
 					/>
 
 					{/* 预览 */}

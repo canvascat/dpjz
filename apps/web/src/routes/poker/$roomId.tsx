@@ -108,7 +108,6 @@ function PokerRoom() {
 			<PokerTeaSheet
 				open={teaOpen}
 				currentRate={teaRate}
-				teaBalance={teaBalance}
 				teaCap={teaCap}
 				onSave={(rate, cap) => {
 					setTeaRate(rate)
