@@ -51,8 +51,8 @@ export function PokerMemberBar({
 						onClick={() => onMemberClick(m)}
 						className="flex min-w-[56px] flex-col items-center gap-1 rounded-lg px-1.5 py-1.5 transition-colors hover:bg-muted/60 active:bg-muted disabled:opacity-100 disabled:hover:bg-transparent"
 					>
-						{/* 头像 */}
-						<div className="relative">
+						{/* 头像：固定尺寸保证文本/Notion 头像高度一致，不 overflow-hidden 以保留角标 */}
+						<div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full">
 							<UserAvatar
 								userId={m.userId}
 								name={m.nickname}
@@ -60,6 +60,7 @@ export function PokerMemberBar({
 								avatarType={m.avatarType}
 								notionConfig={m.notionAvatarConfig}
 								size="lg"
+								className="h-full w-full"
 							/>
 							{/* 在线指示灯 */}
 							{isOnline && (
