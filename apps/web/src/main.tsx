@@ -4,10 +4,17 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { registerSW } from 'virtual:pwa-register'
 
+import { dispatchPwaNeedRefresh, setPwaApplyUpdate } from '@/lib/pwa'
 import { queryClient, router } from './router'
 import './styles.css'
 
-registerSW({ immediate: true })
+const updateSW = registerSW({
+	immediate: true,
+	onNeedRefresh() {
+		setPwaApplyUpdate(() => updateSW(true))
+		dispatchPwaNeedRefresh()
+	},
+})
 
 createRoot(document.getElementById('root')!).render(
 	<StrictMode>

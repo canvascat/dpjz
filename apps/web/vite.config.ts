@@ -14,7 +14,7 @@ export default defineConfig({
 		tailwindcss(),
 		viteReact(),
 		VitePWA({
-			registerType: 'autoUpdate',
+			registerType: 'prompt',
 			manifest: {
 				name: 'P2P 聊天',
 				short_name: 'P2P 聊天',
