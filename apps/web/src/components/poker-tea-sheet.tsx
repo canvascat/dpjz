@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { NumericKeypad } from '@/components/ui/numeric-keypad'
 import { cn } from '@/lib/utils'
@@ -30,8 +31,6 @@ export function PokerTeaSheet({
 	const [capValue, setCapValue] = useState('')
 	/** 当前正在用页内键盘编辑的字段 */
 	const [activeField, setActiveField] = useState<'rate' | 'cap'>('rate')
-	const [limitHint, setLimitHint] = useState('')
-
 	useEffect(() => {
 		if (open) {
 			setValue(String(Math.round(currentRate * 100)))
@@ -39,12 +38,6 @@ export function PokerTeaSheet({
 			setActiveField('rate')
 		}
 	}, [open, currentRate, teaCap])
-
-	useEffect(() => {
-		if (!limitHint) return
-		const t = setTimeout(() => setLimitHint(''), 2000)
-		return () => clearTimeout(t)
-	}, [limitHint])
 
 	const percent = Number(value)
 	const capNum = Number(capValue)
@@ -141,16 +134,11 @@ export function PokerTeaSheet({
 						maxLength={activeField === 'rate' ? 3 : 4}
 						showDisplay={false}
 						onLimitReached={() =>
-							setLimitHint(
+							toast.info(
 								activeField === 'rate' ? '比例最多 100%' : '累计上限最多 9999',
 							)
 						}
 					/>
-					{limitHint && (
-						<p className="text-center text-xs text-muted-foreground">
-							{limitHint}
-						</p>
-					)}
 
 					{/* 保存 */}
 					<Button
