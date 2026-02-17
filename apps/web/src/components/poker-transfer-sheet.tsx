@@ -1,6 +1,7 @@
 import { ArrowRight } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import type { PokerMember } from '@/hooks/useYjsPoker'
+import type { NotionAvatarConfig } from '@/lib/notion-avatar'
 
 import { UserAvatar } from '@/components/notion-style-avatar'
 import { Button } from '@/components/ui/button'
@@ -13,9 +14,20 @@ import {
 	SheetTitle,
 } from '@/components/ui/sheet'
 
+/** 用于预览中展示的「支出方」信息 */
+export interface TransferFromUser {
+	userId: string
+	nickname: string
+	avatarColor: string
+	avatarType?: 'text' | 'notion'
+	notionAvatarConfig?: NotionAvatarConfig
+}
+
 interface PokerTransferSheetProps {
 	/** 接收方，null 时关闭 */
 	target: PokerMember | null
+	/** 当前用户（支出方），用于预览头像 */
+	fromUser: TransferFromUser
 	/** 当前茶位费率 */
 	teaRate: number
 	/** 茶位费累计上限（分），达到后不再扣 */
@@ -28,6 +40,7 @@ interface PokerTransferSheetProps {
 
 export function PokerTransferSheet({
 	target,
+	fromUser,
 	teaRate,
 	teaCap,
 	teaBalance,
@@ -91,13 +104,35 @@ export function PokerTransferSheet({
 				</SheetHeader>
 
 				<div className="space-y-4 px-5 pt-4 pb-4">
-					{/* 预览：有输入时显示，无输入时仅占位以保持弹层高度不变 */}
+					{/* 预览：有输入时显示双方头像与分数，无输入时仅占位以保持弹层高度不变 */}
 					<div className="flex min-h-[52px] items-center justify-center gap-3 rounded-lg bg-muted/60 p-3 text-sm">
-						{isValid && (
+						{isValid && target && (
 							<>
-								<span className="font-medium text-red-500">-{amount}</span>
+								<div className="flex items-center gap-2">
+									<UserAvatar
+										userId={fromUser.userId}
+										name={fromUser.nickname}
+										avatarColor={fromUser.avatarColor}
+										avatarType={fromUser.avatarType}
+										notionConfig={fromUser.notionAvatarConfig}
+										size="default"
+										className="shrink-0"
+									/>
+									<span className="font-medium text-red-500">-{amount}</span>
+								</div>
 								<ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-								<span className="font-medium text-green-600">+{netAmount}</span>
+								<div className="flex items-center gap-2">
+									<UserAvatar
+										userId={target.userId}
+										name={target.nickname}
+										avatarColor={target.avatarColor}
+										avatarType={target.avatarType}
+										notionConfig={target.notionAvatarConfig}
+										size="default"
+										className="shrink-0"
+									/>
+									<span className="font-medium text-green-600">+{netAmount}</span>
+								</div>
 								{teaAmount > 0 && (
 									<span className="text-xs text-muted-foreground">
 										(茶 {teaAmount})

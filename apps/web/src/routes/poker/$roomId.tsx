@@ -100,6 +100,13 @@ function PokerRoom() {
 			{/* 转分 Sheet */}
 			<PokerTransferSheet
 				target={transferTarget}
+				fromUser={{
+					userId: user.id,
+					nickname: user.nickname,
+					avatarColor: user.avatarColor,
+					avatarType: user.avatarType,
+					notionAvatarConfig: user.notionAvatarConfig,
+				}}
 				teaRate={teaRate}
 				teaCap={teaCap}
 				teaBalance={teaBalance}
