@@ -92,6 +92,7 @@ function PokerRoom() {
 			<div className="flex-1 overflow-y-auto px-1 py-2 sm:px-2">
 				<PokerTransactions
 					transactions={transactions}
+					members={members}
 					currentUserId={user.id}
 				/>
 			</div>
