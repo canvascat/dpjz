@@ -15,27 +15,24 @@ const svgPath = join(publicDir, 'icon.svg')
 const dynamicImport = (id) => import(id)
 
 async function main() {
-  const sharp = (await dynamicImport('sharp')).default
-  const svg = await readFile(svgPath)
+	const sharp = (await dynamicImport('sharp')).default
+	const svg = await readFile(svgPath)
 
-  await mkdir(publicDir, { recursive: true })
+	await mkdir(publicDir, { recursive: true })
 
-  const sizes = [
-    [32, 'favicon-32.png'],
-    [192, 'logo192.png'],
-    [512, 'logo512.png'],
-  ]
+	const sizes = [
+		[32, 'favicon-32.png'],
+		[192, 'logo192.png'],
+		[512, 'logo512.png'],
+	]
 
-  for (const [size, name] of sizes) {
-    await sharp(svg)
-      .resize(size, size)
-      .png()
-      .toFile(join(publicDir, name))
-    console.log(`Generated ${name}`)
-  }
+	for (const [size, name] of sizes) {
+		await sharp(svg).resize(size, size).png().toFile(join(publicDir, name))
+		console.log(`Generated ${name}`)
+	}
 }
 
 main().catch((e) => {
-  console.error(e)
-  process.exit(1)
+	console.error(e)
+	process.exit(1)
 })
