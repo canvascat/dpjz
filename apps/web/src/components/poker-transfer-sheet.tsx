@@ -68,7 +68,7 @@ export function PokerTransferSheet({
 					</SheetDescription>
 				</SheetHeader>
 
-				<div className="space-y-4 px-5 pt-4 pb-6">
+				<div className="space-y-4 px-5 pt-4 pb-4">
 					{/* 页内数字键盘 */}
 					<NumericKeypad
 						value={value}

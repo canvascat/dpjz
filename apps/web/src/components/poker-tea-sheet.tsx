@@ -69,7 +69,7 @@ export function PokerTeaSheet({
 					</SheetDescription>
 				</SheetHeader>
 
-				<div className="space-y-4 px-5 pt-4 pb-6">
+				<div className="space-y-4 px-5 pt-4 pb-4">
 					{/* 累计上限（可配置）- 点击切换为键盘编辑对象 */}
 					<div className="space-y-2">
 						<label className="text-sm font-medium">

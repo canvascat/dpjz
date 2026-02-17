@@ -68,7 +68,7 @@ function SheetContent({
 					side === 'top' &&
 						'data-[state=closed]:slide-out-to-top data-[state=open]:slide-in-from-top inset-x-0 top-0 h-auto border-b px-5 pt-[max(1rem,env(safe-area-inset-top))]',
 					side === 'bottom' &&
-						'data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom inset-x-0 bottom-0 h-auto border-t pl-[max(1.25rem,env(safe-area-inset-left))] pr-[max(1.25rem,env(safe-area-inset-right))] pb-[max(1.5rem,env(safe-area-inset-bottom))]',
+						'data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom inset-x-0 bottom-0 h-auto border-t pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)] pb-[max(1rem,env(safe-area-inset-bottom))]',
 					className,
 				)}
 				{...props}
@@ -79,7 +79,7 @@ function SheetContent({
 						className={cn(
 							'ring-offset-background focus:ring-ring data-[state=open]:bg-secondary absolute rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none',
 							side === 'bottom'
-								? 'top-[max(1rem,env(safe-area-inset-top))] right-[max(1.25rem,env(safe-area-inset-right))]'
+								? 'top-[max(1rem,env(safe-area-inset-top))] right-5'
 								: 'top-4 right-4',
 						)}
 					>

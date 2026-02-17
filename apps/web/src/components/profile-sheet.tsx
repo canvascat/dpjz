@@ -56,7 +56,7 @@ export function ProfileSheet({ trigger }: ProfileSheetProps) {
 					<SheetDescription>修改你的昵称和头像颜色</SheetDescription>
 				</SheetHeader>
 
-				<div className="space-y-6 px-5 pt-4 pb-6">
+				<div className="space-y-6 px-5 pt-4 pb-4">
 					{/* 预览 */}
 					<div className="flex items-center gap-3">
 						<div
