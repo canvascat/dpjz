@@ -3,6 +3,7 @@ import { ArrowLeft, Send, Users } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import ChatMessages from '@/components/chat-messages'
 import { ProfileSheet } from '@/components/profile-sheet'
+import { UserAvatar } from '@/components/notion-style-avatar'
 import { ShareDialog } from '@/components/share-dialog'
 import { Button } from '@/components/ui/button'
 import { useLocalUser } from '@/hooks/useLocalUser'
@@ -73,14 +74,17 @@ function ChatRoom() {
 				{/* 在线成员指示 */}
 				<div className="flex -space-x-1.5">
 					{peers.slice(0, 5).map((p, i) => (
-						<div
+						<UserAvatar
 							key={`${p.userId}-${i}`}
-							className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-background text-[10px] font-medium text-white"
-							style={{ backgroundColor: p.avatarColor }}
+							userId={p.userId}
+							name={p.nickname}
+							avatarColor={p.avatarColor}
+							avatarType={p.avatarType}
+							notionConfig={p.notionAvatarConfig}
+							size="sm"
+							className="h-7 w-7 border-2 border-background text-[10px]"
 							title={p.nickname}
-						>
-							{p.nickname.charAt(0).toUpperCase()}
-						</div>
+						/>
 					))}
 					{peers.length > 5 && (
 						<div className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-background bg-muted text-[10px] font-medium">

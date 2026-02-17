@@ -1,5 +1,7 @@
 /** 本地用户身份模块 — 基于 localStorage 持久化 */
 
+import type { NotionAvatarConfig } from '@/lib/notion-avatar'
+
 const STORAGE_KEY = 'dpjz-local-user'
 
 /** 预设头像颜色 */
@@ -14,13 +16,19 @@ export const AVATAR_COLORS = [
 	'#84cc16', // lime-500
 ] as const
 
+export type AvatarType = 'text' | 'notion'
+
 export interface LocalUser {
 	/** 唯一标识（UUID） */
 	id: string
 	/** 昵称 */
 	nickname: string
-	/** 头像背景色（hex） */
+	/** 头像类型：文本（首字母+颜色）或 Notion 风格 */
+	avatarType: AvatarType
+	/** 头像背景色（hex），文本头像时使用 */
 	avatarColor: string
+	/** Notion 风格头像各部件索引，仅当 avatarType 为 notion 时使用 */
+	notionAvatarConfig?: NotionAvatarConfig
 }
 
 /** 随机取一个头像颜色 */
@@ -60,15 +68,26 @@ function randomNickname(): string {
  */
 export function getLocalUser(): LocalUser {
 	if (typeof window === 'undefined') {
-		return { id: '', nickname: '', avatarColor: AVATAR_COLORS[0] }
+		return {
+			id: '',
+			nickname: '',
+			avatarType: 'text',
+			avatarColor: AVATAR_COLORS[0],
+		}
 	}
 
 	const raw = localStorage.getItem(STORAGE_KEY)
 	if (raw) {
 		try {
-			const parsed = JSON.parse(raw) as LocalUser
+			const parsed = JSON.parse(raw) as LocalUser & { avatarType?: AvatarType }
 			if (parsed.id && parsed.nickname && parsed.avatarColor) {
-				return parsed
+				const avatarType: AvatarType =
+					parsed.avatarType ?? (parsed.notionAvatarConfig ? 'notion' : 'text')
+				return {
+					...parsed,
+					avatarType,
+					notionAvatarConfig: parsed.notionAvatarConfig,
+				}
 			}
 		} catch {
 			// 解析失败，重建
@@ -79,6 +98,7 @@ export function getLocalUser(): LocalUser {
 	const user: LocalUser = {
 		id: crypto.randomUUID(),
 		nickname: randomNickname(),
+		avatarType: 'text',
 		avatarColor: randomAvatarColor(),
 	}
 	localStorage.setItem(STORAGE_KEY, JSON.stringify(user))

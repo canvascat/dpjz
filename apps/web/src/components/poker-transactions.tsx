@@ -1,6 +1,6 @@
 import { ArrowRight } from 'lucide-react'
 import type { PokerTransaction } from '@/hooks/useYjsPoker'
-
+import { UserAvatar } from '@/components/notion-style-avatar'
 
 function formatTime(ts: number): string {
 	const d = new Date(ts)
@@ -48,23 +48,27 @@ export function PokerTransactions({
 						className="flex items-center gap-2.5 rounded-lg px-3 py-2.5 transition-colors hover:bg-muted/40"
 					>
 						{/* 发送方头像 */}
-						<div
-							className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold text-white"
-							style={{ backgroundColor: t.fromAvatarColor }}
-						>
-							{t.fromNickname.charAt(0).toUpperCase()}
-						</div>
+						<UserAvatar
+							userId={t.fromUserId}
+							name={t.fromNickname}
+							avatarColor={t.fromAvatarColor}
+							avatarType={t.fromAvatarType}
+							notionConfig={t.fromNotionAvatarConfig}
+							size="default"
+						/>
 
 						{/* 箭头 */}
 						<ArrowRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
 
 						{/* 接收方头像 */}
-						<div
-							className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold text-white"
-							style={{ backgroundColor: t.toAvatarColor }}
-						>
-							{t.toNickname.charAt(0).toUpperCase()}
-						</div>
+						<UserAvatar
+							userId={t.toUserId}
+							name={t.toNickname}
+							avatarColor={t.toAvatarColor}
+							avatarType={t.toAvatarType}
+							notionConfig={t.toNotionAvatarConfig}
+							size="default"
+						/>
 
 						{/* 内容 */}
 						<div className="min-w-0 flex-1">

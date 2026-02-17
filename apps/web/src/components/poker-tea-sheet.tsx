@@ -47,9 +47,7 @@ export function PokerTeaSheet({
 		percent >= 0 &&
 		percent <= 100
 	const isCapValid =
-		capValue.trim() !== '' &&
-		Number.isInteger(capNum) &&
-		capNum >= 1
+		capValue.trim() !== '' && Number.isInteger(capNum) && capNum >= 1
 	const isValid = isRateValid && isCapValid
 
 	const handleSave = () => {
@@ -64,17 +62,15 @@ export function PokerTeaSheet({
 				<SheetHeader className="text-left">
 					<SheetTitle>茶位费设置</SheetTitle>
 					<SheetDescription>
-					设置扣除比例与累计上限，修改后从下一笔生效。每笔扣除为整数、最少 1
-					分；累计达到上限后不再扣。
+						设置扣除比例与累计上限，修改后从下一笔生效。每笔扣除为整数、最少 1
+						分；累计达到上限后不再扣。
 					</SheetDescription>
 				</SheetHeader>
 
 				<div className="space-y-4 px-5 pt-4 pb-4">
 					{/* 累计上限（可配置）- 点击切换为键盘编辑对象 */}
-					<div className="space-y-2">
-						<label className="text-sm font-medium">
-							累计上限（分）
-						</label>
+					<div className="space-y-2.5">
+						<label className="block text-sm font-medium">累计上限（分）</label>
 						<button
 							type="button"
 							onClick={() => setActiveField('cap')}
@@ -93,8 +89,8 @@ export function PokerTeaSheet({
 					</div>
 
 					{/* 扣除比例 - 点击切换为键盘编辑对象 */}
-					<div className="space-y-2">
-						<label className="text-sm font-medium">扣除比例 (%)</label>
+					<div className="space-y-2.5">
+						<label className="block text-sm font-medium">扣除比例 (%)</label>
 						<div className="flex items-center gap-2">
 							<button
 								type="button"
@@ -113,8 +109,8 @@ export function PokerTeaSheet({
 							</span>
 						</div>
 						<p className="text-xs text-muted-foreground">
-							设为 0 表示不收茶位费。例如设 10%，则每转 100
-							分扣 10 分茶位费，接收方实得 90 分（扣除为整数，最少 1 分）。
+							设为 0 表示不收茶位费。例如设 10%，则每转 100 分扣 10
+							分茶位费，接收方实得 90 分（扣除为整数，最少 1 分）。
 						</p>
 					</div>
 

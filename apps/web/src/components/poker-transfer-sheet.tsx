@@ -2,6 +2,7 @@ import { ArrowRight } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import type { PokerMember } from '@/hooks/useYjsPoker'
 
+import { UserAvatar } from '@/components/notion-style-avatar'
 import { Button } from '@/components/ui/button'
 import { NumericKeypad } from '@/components/ui/numeric-keypad'
 import {
@@ -52,12 +53,14 @@ export function PokerTransferSheet({
 						<span>转分给</span>
 						{target && (
 							<span className="inline-flex items-center gap-1.5">
-								<span
-									className="inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-semibold text-white"
-									style={{ backgroundColor: target.avatarColor }}
-								>
-									{target.nickname.charAt(0).toUpperCase()}
-								</span>
+								<UserAvatar
+									userId={target.userId}
+									name={target.nickname}
+									avatarColor={target.avatarColor}
+									avatarType={target.avatarType}
+									notionConfig={target.notionAvatarConfig}
+									size="sm"
+								/>
 								<span>{target.nickname}</span>
 							</span>
 						)}

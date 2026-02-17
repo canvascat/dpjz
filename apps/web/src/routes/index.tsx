@@ -4,6 +4,7 @@ import { useState } from 'react'
 import type { RoomType } from '@/lib/user'
 
 import { ProfileSheet } from '@/components/profile-sheet'
+import { UserAvatar } from '@/components/notion-style-avatar'
 import { Button } from '@/components/ui/button'
 import { Card, CardDescription, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -113,12 +114,15 @@ function HomePage() {
 					<ProfileSheet
 						trigger={
 							<button className="flex w-full items-center gap-3 rounded-xl p-2 text-left transition-colors hover:bg-muted/50 active:bg-muted">
-								<div
-									className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-lg font-semibold text-white"
-									style={{ backgroundColor: user.avatarColor }}
-								>
-									{user.nickname.charAt(0).toUpperCase()}
-								</div>
+								<UserAvatar
+									userId={user.id}
+									name={user.nickname}
+									avatarColor={user.avatarColor}
+									avatarType={user.avatarType}
+									notionConfig={user.notionAvatarConfig}
+									size="lg"
+									className="h-12 w-12 text-lg"
+								/>
 								<div className="min-w-0 flex-1">
 									<p className="truncate font-medium">{user.nickname}</p>
 									<p className="text-xs text-muted-foreground">
@@ -155,8 +159,8 @@ function HomePage() {
 					</div>
 
 					{/* 加入房间 */}
-					<div className="space-y-2">
-						<label className="text-sm font-medium text-muted-foreground">
+					<div className="space-y-2.5">
+						<label className="block text-sm font-medium text-muted-foreground">
 							加入已有房间
 						</label>
 						<div className="flex gap-2">
@@ -187,7 +191,7 @@ function HomePage() {
 									<Clock className="h-4 w-4" />
 									<span>最近房间</span>
 								</div>
-								<div className="space-y-2">
+								<div className="space-y-2.5">
 									{rooms.map((room) => {
 										const type: RoomType = room.type || 'chat'
 										const meta = ROOM_TYPE_META[type]

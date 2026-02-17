@@ -1,4 +1,5 @@
 import type { ChatMessage } from '@/hooks/useYjsChat'
+import { UserAvatar } from '@/components/notion-style-avatar'
 
 /** 格式化时间：只显示时:分 */
 function formatTime(ts: number): string {
@@ -60,12 +61,14 @@ export default function ChatMessages({
 						>
 							{/* 头像 */}
 							{!merged ? (
-								<div
-									className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-medium text-white"
-									style={{ backgroundColor: msg.avatarColor }}
-								>
-									{msg.nickname.charAt(0).toUpperCase()}
-								</div>
+								<UserAvatar
+									userId={msg.userId}
+									name={msg.nickname}
+									avatarColor={msg.avatarColor}
+									avatarType={msg.avatarType}
+									notionConfig={msg.notionAvatarConfig}
+									size="default"
+								/>
 							) : (
 								<div className="w-8 shrink-0" />
 							)}

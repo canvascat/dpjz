@@ -1,5 +1,7 @@
-import { Check, User } from 'lucide-react'
+import { Check, Dices, User } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import type { NotionAvatarConfig } from '@/lib/notion-avatar'
+import type { AvatarType } from '@/lib/user'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
@@ -13,6 +15,9 @@ import {
 } from '@/components/ui/sheet'
 import { useLocalUser } from '@/hooks/useLocalUser'
 import { AVATAR_COLORS } from '@/lib/user'
+import { getRandomNotionAvatarConfig } from '@/lib/notion-avatar'
+import { UserAvatar } from '@/components/notion-style-avatar'
+import { cn } from '@/lib/utils'
 
 interface ProfileSheetProps {
 	trigger?: React.ReactNode
@@ -33,23 +38,37 @@ function useIsMobile() {
 export function ProfileSheet({ trigger }: ProfileSheetProps) {
 	const { user, update } = useLocalUser()
 	const [nickname, setNickname] = useState(user.nickname)
-	const [selectedColor, setSelectedColor] = useState(user.avatarColor)
+	// 草稿：仅保存后生效
+	const [draftAvatarType, setDraftAvatarType] = useState<AvatarType>(
+		user.avatarType,
+	)
+	const [draftColor, setDraftColor] = useState(user.avatarColor)
+	const [draftNotionConfig, setDraftNotionConfig] = useState<
+		NotionAvatarConfig | undefined
+	>(user.notionAvatarConfig)
 	const [open, setOpen] = useState(false)
 	const isMobile = useIsMobile()
 
 	const handleSave = () => {
 		const trimmed = nickname.trim()
 		if (trimmed.length > 0) {
-			update({ nickname: trimmed, avatarColor: selectedColor })
+			update({
+				nickname: trimmed,
+				avatarType: draftAvatarType,
+				avatarColor: draftColor,
+				notionAvatarConfig:
+					draftAvatarType === 'notion' ? draftNotionConfig : undefined,
+			})
 		}
 		setOpen(false)
 	}
 
 	const handleOpenChange = (isOpen: boolean) => {
 		if (isOpen) {
-			// 打开时同步最新数据
 			setNickname(user.nickname)
-			setSelectedColor(user.avatarColor)
+			setDraftAvatarType(user.avatarType)
+			setDraftColor(user.avatarColor)
+			setDraftNotionConfig(user.notionAvatarConfig)
 		}
 		setOpen(isOpen)
 	}
@@ -66,18 +85,21 @@ export function ProfileSheet({ trigger }: ProfileSheetProps) {
 			<SheetContent side="bottom" className="rounded-t-2xl">
 				<SheetHeader className="text-left">
 					<SheetTitle>个人信息</SheetTitle>
-					<SheetDescription>修改你的昵称和头像颜色</SheetDescription>
+					<SheetDescription>修改你的昵称和头像，保存后生效</SheetDescription>
 				</SheetHeader>
 
 				<div className="space-y-6 px-5 pt-4 pb-4">
-					{/* 预览 */}
+					{/* 预览（草稿） */}
 					<div className="flex items-center gap-3">
-						<div
-							className="flex h-14 w-14 items-center justify-center rounded-full text-xl font-semibold text-white"
-							style={{ backgroundColor: selectedColor }}
-						>
-							{(nickname || '?').charAt(0).toUpperCase()}
-						</div>
+						<UserAvatar
+							userId={user.id}
+							name={nickname || '?'}
+							avatarColor={draftColor}
+							avatarType={draftAvatarType}
+							notionConfig={draftNotionConfig}
+							size="lg"
+							className="h-14 w-14 text-xl"
+						/>
 						<div>
 							<p className="font-medium">{nickname || '未设置'}</p>
 							<p className="text-xs text-muted-foreground">
@@ -89,8 +111,8 @@ export function ProfileSheet({ trigger }: ProfileSheetProps) {
 					<Separator />
 
 					{/* 昵称 */}
-					<div className="space-y-2">
-						<label className="text-sm font-medium">昵称</label>
+					<div className="space-y-2.5">
+						<label className="block text-sm font-medium">昵称</label>
 						{isMobile ? (
 							<div className="flex items-center gap-3">
 								<span className="min-w-0 flex-1 truncate text-base text-foreground">
@@ -122,26 +144,51 @@ export function ProfileSheet({ trigger }: ProfileSheetProps) {
 						)}
 					</div>
 
-					{/* 头像颜色 */}
-					<div className="space-y-2">
-						<label className="text-sm font-medium">头像颜色</label>
-						<div className="flex flex-wrap gap-3">
-							{AVATAR_COLORS.map((color) => (
-								<button
-									key={color}
-									onClick={() => setSelectedColor(color)}
-									className="relative flex h-10 w-10 items-center justify-center rounded-full transition-transform active:scale-95"
-									style={{ backgroundColor: color }}
-								>
-									{selectedColor === color && (
-										<Check className="h-5 w-5 text-white" />
-									)}
-								</button>
-							))}
+					{/* 头像：色块 = 文本头像，骰子 = 随机 Notion 头像 */}
+					<div className="space-y-2.5">
+						<label className="block text-sm font-medium">头像</label>
+						<div className="flex flex-wrap items-center gap-3">
+							{AVATAR_COLORS.map((color) => {
+								const selected =
+									draftAvatarType === 'text' && draftColor === color
+								return (
+									<button
+										key={color}
+										type="button"
+										onClick={() => {
+											setDraftAvatarType('text')
+											setDraftColor(color)
+										}}
+										className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-transform active:scale-95"
+										style={{ backgroundColor: color }}
+									>
+										{selected && (
+											<Check className="h-5 w-5 text-white drop-shadow-sm" />
+										)}
+									</button>
+								)
+							})}
+							{/* 骰子：随机 Notion 头像 */}
+							<button
+								type="button"
+								onClick={() => {
+									setDraftAvatarType('notion')
+									setDraftNotionConfig(getRandomNotionAvatarConfig())
+								}}
+								className={cn(
+									'flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 transition-transform active:scale-95',
+									draftAvatarType === 'notion'
+										? 'border-primary bg-primary/10 text-primary'
+										: 'border-muted-foreground/30 bg-muted text-muted-foreground',
+								)}
+								title="随机 Notion 头像"
+							>
+								<Dices className="h-5 w-5" />
+							</button>
 						</div>
 					</div>
 
-					{/* 保存 */}
+					{/* 保存后头像才生效 */}
 					<Button
 						onClick={handleSave}
 						className="w-full"

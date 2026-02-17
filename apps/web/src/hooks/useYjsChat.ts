@@ -4,17 +4,17 @@ import type { IndexeddbPersistence } from 'y-indexeddb'
 import type { WebrtcProvider } from 'y-webrtc'
 
 import type { LocalUser } from '@/lib/user'
+import type { NotionAvatarConfig } from '@/lib/notion-avatar'
 
 /** 聊天消息数据结构 */
 export interface ChatMessage {
 	id: string
 	text: string
-	/** 发送者 userId（唯一标识） */
 	userId: string
-	/** 发送者昵称（发送时快照） */
 	nickname: string
-	/** 发送者头像色 */
 	avatarColor: string
+	avatarType?: 'text' | 'notion'
+	notionAvatarConfig?: NotionAvatarConfig
 	timestamp: number
 }
 
@@ -23,6 +23,8 @@ export interface PeerInfo {
 	userId: string
 	nickname: string
 	avatarColor: string
+	avatarType?: 'text' | 'notion'
+	notionAvatarConfig?: NotionAvatarConfig
 }
 
 interface UseYjsChatReturn {
@@ -65,7 +67,18 @@ export function useYjsChat(
 		const doc = new Y.Doc()
 		const messagesArray = doc.getArray<Y.Map<string | number>>('messages')
 
-		/** 从 Y.Array 读取全部消息并按时间排序 */
+		const parseNotionConfig = (
+			raw: unknown,
+		): NotionAvatarConfig | undefined => {
+			if (!raw || typeof raw !== 'string') return undefined
+			try {
+				const o = JSON.parse(raw) as NotionAvatarConfig
+				return o && typeof o.face === 'number' ? o : undefined
+			} catch {
+				return undefined
+			}
+		}
+
 		const readMessages = (): Array<ChatMessage> => {
 			const msgs: Array<ChatMessage> = []
 			messagesArray.forEach((yMap) => {
@@ -75,6 +88,8 @@ export function useYjsChat(
 					userId: yMap.get('userId') as string,
 					nickname: yMap.get('nickname') as string,
 					avatarColor: (yMap.get('avatarColor') as string) || '#3b82f6',
+					avatarType: (yMap.get('avatarType') as 'text' | 'notion') || 'text',
+					notionAvatarConfig: parseNotionConfig(yMap.get('notionAvatarConfig')),
 					timestamp: yMap.get('timestamp') as number,
 				})
 			})
@@ -112,9 +127,7 @@ export function useYjsChat(
 			)
 
 			const webrtcProvider = new WebrtcProvider(`dpjz-chat-${roomId}`, doc, {
-				signaling: [
-					import.meta.env.VITE_SIGNALING_URL,
-				],
+				signaling: [import.meta.env.VITE_SIGNALING_URL],
 			})
 
 			// 设置 awareness
@@ -123,6 +136,8 @@ export function useYjsChat(
 				userId: user.id,
 				nickname: user.nickname,
 				avatarColor: user.avatarColor,
+				avatarType: user.avatarType,
+				notionAvatarConfig: user.notionAvatarConfig,
 			})
 
 			const updatePeers = () => {
@@ -179,9 +194,17 @@ export function useYjsChat(
 				userId: localUser.id,
 				nickname: localUser.nickname,
 				avatarColor: localUser.avatarColor,
+				avatarType: localUser.avatarType,
+				notionAvatarConfig: localUser.notionAvatarConfig,
 			})
 		}
-	}, [localUser.id, localUser.nickname, localUser.avatarColor])
+	}, [
+		localUser.id,
+		localUser.nickname,
+		localUser.avatarColor,
+		localUser.avatarType,
+		JSON.stringify(localUser.notionAvatarConfig),
+	])
 
 	const sendMessage = useCallback((text: string) => {
 		const { doc, messagesArray } = yjsRef.current
@@ -195,6 +218,10 @@ export function useYjsChat(
 			yMap.set('userId', user.id)
 			yMap.set('nickname', user.nickname)
 			yMap.set('avatarColor', user.avatarColor)
+			yMap.set('avatarType', user.avatarType)
+			if (user.notionAvatarConfig) {
+				yMap.set('notionAvatarConfig', JSON.stringify(user.notionAvatarConfig))
+			}
 			yMap.set('timestamp', Date.now())
 			messagesArray.push([yMap])
 		})

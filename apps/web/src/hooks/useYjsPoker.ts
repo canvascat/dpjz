@@ -3,9 +3,9 @@ import * as Y from 'yjs'
 import type { IndexeddbPersistence } from 'y-indexeddb'
 import type { WebrtcProvider } from 'y-webrtc'
 
-
-import { TEA_CAP } from '@/lib/constants'
 import type { LocalUser } from '@/lib/user'
+import type { NotionAvatarConfig } from '@/lib/notion-avatar'
+import { TEA_CAP } from '@/lib/constants'
 
 // ─── 数据类型 ───────────────────────────────────────────
 
@@ -14,6 +14,8 @@ export interface PokerMember {
 	userId: string
 	nickname: string
 	avatarColor: string
+	avatarType?: 'text' | 'notion'
+	notionAvatarConfig?: NotionAvatarConfig
 }
 
 /** 一笔转账记录 */
@@ -22,9 +24,13 @@ export interface PokerTransaction {
 	fromUserId: string
 	fromNickname: string
 	fromAvatarColor: string
+	fromAvatarType?: 'text' | 'notion'
+	fromNotionAvatarConfig?: NotionAvatarConfig
 	toUserId: string
 	toNickname: string
 	toAvatarColor: string
+	toAvatarType?: 'text' | 'notion'
+	toNotionAvatarConfig?: NotionAvatarConfig
 	/** 发送者支出总额 */
 	amount: number
 	/** 成交时茶位费率 (0~1) */
@@ -61,6 +67,16 @@ interface UseYjsPokerReturn {
 
 // ─── 工具函数 ───────────────────────────────────────────
 
+function parseNotionConfig(raw: unknown): NotionAvatarConfig | undefined {
+	if (!raw || typeof raw !== 'string') return undefined
+	try {
+		const o = JSON.parse(raw) as NotionAvatarConfig
+		return o && typeof o.face === 'number' ? o : undefined
+	} catch {
+		return undefined
+	}
+}
+
 function readTransactions(
 	arr: Y.Array<Y.Map<string | number>>,
 ): Array<PokerTransaction> {
@@ -71,16 +87,22 @@ function readTransactions(
 			fromUserId: yMap.get('fromUserId') as string,
 			fromNickname: yMap.get('fromNickname') as string,
 			fromAvatarColor: (yMap.get('fromAvatarColor') as string) || '#3b82f6',
+			fromAvatarType:
+				(yMap.get('fromAvatarType') as 'text' | 'notion') || 'text',
+			fromNotionAvatarConfig: parseNotionConfig(
+				yMap.get('fromNotionAvatarConfig'),
+			),
 			toUserId: yMap.get('toUserId') as string,
 			toNickname: yMap.get('toNickname') as string,
 			toAvatarColor: (yMap.get('toAvatarColor') as string) || '#3b82f6',
+			toAvatarType: (yMap.get('toAvatarType') as 'text' | 'notion') || 'text',
+			toNotionAvatarConfig: parseNotionConfig(yMap.get('toNotionAvatarConfig')),
 			amount: yMap.get('amount') as number,
 			teaRate: yMap.get('teaRate') as number,
 			teaAmount: yMap.get('teaAmount') as number,
 			timestamp: yMap.get('timestamp') as number,
 		})
 	})
-	// 新 → 旧
 	txns.sort((a, b) => b.timestamp - a.timestamp)
 	return txns
 }
@@ -92,6 +114,8 @@ function readMembers(map: Y.Map<Y.Map<string>>): Array<PokerMember> {
 			userId,
 			nickname: yMap.get('nickname') || '???',
 			avatarColor: yMap.get('avatarColor') || '#3b82f6',
+			avatarType: (yMap.get('avatarType') as 'text' | 'notion') || 'text',
+			notionAvatarConfig: parseNotionConfig(yMap.get('notionAvatarConfig')),
 		})
 	})
 	return members
@@ -159,9 +183,7 @@ export function useYjsPoker(
 			const rate = settingsMap.get('teaRate')
 			setTeaRateState(typeof rate === 'number' ? rate : 0)
 			const cap = settingsMap.get('teaCap')
-			setTeaCapState(
-				typeof cap === 'number' && cap >= 1 ? cap : TEA_CAP,
-			)
+			setTeaCapState(typeof cap === 'number' && cap >= 1 ? cap : TEA_CAP)
 		}
 
 		transactionsArray.observeDeep(syncTransactions)
@@ -178,16 +200,25 @@ export function useYjsPoker(
 			const u = localUserRef.current
 			if (!u.id) return
 			const existing = membersMap.get(u.id)
-			// 仅在信息变化时写入
+			const notionStr = u.notionAvatarConfig
+				? JSON.stringify(u.notionAvatarConfig)
+				: undefined
+			const existingNotion = existing?.get('notionAvatarConfig')
 			if (
 				!existing ||
 				existing.get('nickname') !== u.nickname ||
-				existing.get('avatarColor') !== u.avatarColor
+				existing.get('avatarColor') !== u.avatarColor ||
+				existing.get('avatarType') !== u.avatarType ||
+				existingNotion !== notionStr
 			) {
 				doc.transact(() => {
 					const yMap = new Y.Map<string>()
 					yMap.set('nickname', u.nickname)
 					yMap.set('avatarColor', u.avatarColor)
+					yMap.set('avatarType', u.avatarType)
+					if (u.notionAvatarConfig) {
+						yMap.set('notionAvatarConfig', JSON.stringify(u.notionAvatarConfig))
+					}
 					membersMap.set(u.id, yMap)
 				})
 			}
@@ -212,9 +243,7 @@ export function useYjsPoker(
 				doc,
 			)
 			const webrtcProvider = new WebrtcProvider(`dpjz-poker-${roomId}`, doc, {
-				signaling: [
-					import.meta.env.VITE_SIGNALING_URL,
-				],
+				signaling: [import.meta.env.VITE_SIGNALING_URL],
 			})
 
 			const user = localUserRef.current
@@ -222,6 +251,8 @@ export function useYjsPoker(
 				userId: user.id,
 				nickname: user.nickname,
 				avatarColor: user.avatarColor,
+				avatarType: user.avatarType,
+				notionAvatarConfig: user.notionAvatarConfig,
 			})
 
 			const updateOnline = () => {
@@ -298,10 +329,23 @@ export function useYjsPoker(
 				const yMap = new Y.Map<string>()
 				yMap.set('nickname', localUser.nickname)
 				yMap.set('avatarColor', localUser.avatarColor)
+				yMap.set('avatarType', localUser.avatarType)
+				if (localUser.notionAvatarConfig) {
+					yMap.set(
+						'notionAvatarConfig',
+						JSON.stringify(localUser.notionAvatarConfig),
+					)
+				}
 				membersMap.set(localUser.id, yMap)
 			})
 		}
-	}, [localUser.id, localUser.nickname, localUser.avatarColor])
+	}, [
+		localUser.id,
+		localUser.nickname,
+		localUser.avatarColor,
+		localUser.avatarType,
+		JSON.stringify(localUser.notionAvatarConfig),
+	])
 
 	// ── 派生余额 ──
 	const balances = useMemo(() => computeBalances(transactions), [transactions])
@@ -316,15 +360,19 @@ export function useYjsPoker(
 		const toMember = yjsRef.current.membersMap?.get(toUserId)
 		const toNickname = toMember?.get('nickname') || '???'
 		const toAvatarColor = toMember?.get('avatarColor') || '#3b82f6'
+		const toAvatarType =
+			(toMember?.get('avatarType') as 'text' | 'notion') || 'text'
+		const toNotionConfig = parseNotionConfig(
+			toMember?.get('notionAvatarConfig'),
+		)
 
 		const currentRate = settingsMap.get('teaRate') ?? 0
 		const cap = settingsMap.get('teaCap')
-		const effectiveCap =
-			typeof cap === 'number' && cap >= 1 ? cap : TEA_CAP
+		const effectiveCap = typeof cap === 'number' && cap >= 1 ? cap : TEA_CAP
 		// 当前茶池累计（从流水汇总）
 		let currentTeaBalance = 0
 		transactionsArray.forEach((yMap) => {
-			currentTeaBalance += (yMap.get('teaAmount') as number) ?? 0
+			currentTeaBalance += (yMap.get('teaAmount') as number | undefined) ?? 0
 		})
 		// 茶位费：整数，最少 1 分；累计达到上限后不再扣
 		const remainingCap = Math.max(0, effectiveCap - currentTeaBalance)
@@ -338,9 +386,20 @@ export function useYjsPoker(
 			yMap.set('fromUserId', from.id)
 			yMap.set('fromNickname', from.nickname)
 			yMap.set('fromAvatarColor', from.avatarColor)
+			yMap.set('fromAvatarType', from.avatarType)
+			if (from.notionAvatarConfig) {
+				yMap.set(
+					'fromNotionAvatarConfig',
+					JSON.stringify(from.notionAvatarConfig),
+				)
+			}
 			yMap.set('toUserId', toUserId)
 			yMap.set('toNickname', toNickname)
 			yMap.set('toAvatarColor', toAvatarColor)
+			yMap.set('toAvatarType', toAvatarType)
+			if (toNotionConfig) {
+				yMap.set('toNotionAvatarConfig', JSON.stringify(toNotionConfig))
+			}
 			yMap.set('amount', amount)
 			yMap.set('teaRate', currentRate)
 			yMap.set('teaAmount', teaAmount)

@@ -1,6 +1,6 @@
 import { Coffee } from 'lucide-react'
 import type { Balances, PokerMember } from '@/hooks/useYjsPoker'
-
+import { UserAvatar } from '@/components/notion-style-avatar'
 
 interface PokerMemberBarProps {
 	members: Array<PokerMember>
@@ -53,12 +53,14 @@ export function PokerMemberBar({
 					>
 						{/* 头像 */}
 						<div className="relative">
-							<div
-								className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold text-white"
-								style={{ backgroundColor: m.avatarColor }}
-							>
-								{m.nickname.charAt(0).toUpperCase()}
-							</div>
+							<UserAvatar
+								userId={m.userId}
+								name={m.nickname}
+								avatarColor={m.avatarColor}
+								avatarType={m.avatarType}
+								notionConfig={m.notionAvatarConfig}
+								size="lg"
+							/>
 							{/* 在线指示灯 */}
 							{isOnline && (
 								<span className="absolute right-0 bottom-0 h-2.5 w-2.5 rounded-full border-2 border-background bg-green-500" />
