@@ -1,5 +1,5 @@
 import { Check, User } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
@@ -18,11 +18,24 @@ interface ProfileSheetProps {
 	trigger?: React.ReactNode
 }
 
+function useIsMobile() {
+	const [isMobile, setIsMobile] = useState(false)
+	useEffect(() => {
+		const m = window.matchMedia('(pointer: coarse)')
+		const update = () => setIsMobile(m.matches)
+		update()
+		m.addEventListener('change', update)
+		return () => m.removeEventListener('change', update)
+	}, [])
+	return isMobile
+}
+
 export function ProfileSheet({ trigger }: ProfileSheetProps) {
 	const { user, update } = useLocalUser()
 	const [nickname, setNickname] = useState(user.nickname)
 	const [selectedColor, setSelectedColor] = useState(user.avatarColor)
 	const [open, setOpen] = useState(false)
+	const isMobile = useIsMobile()
 
 	const handleSave = () => {
 		const trimmed = nickname.trim()
@@ -78,13 +91,30 @@ export function ProfileSheet({ trigger }: ProfileSheetProps) {
 					{/* 昵称 */}
 					<div className="space-y-2">
 						<label className="text-sm font-medium">昵称</label>
-						<Input
-							value={nickname}
-							onChange={(e) => setNickname(e.target.value)}
-							placeholder="输入你的昵称"
-							maxLength={20}
-							className="text-base"
-						/>
+						{isMobile ? (
+							<button
+								type="button"
+								onClick={() => {
+									const value = window.prompt('输入你的昵称', nickname || '')
+									if (value !== null) {
+										setNickname(value.trim().slice(0, 20))
+									}
+								}}
+								className="border-input bg-transparent flex h-9 w-full min-w-0 rounded-md border px-3 py-1 text-left text-base shadow-xs outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] active:bg-muted/50"
+							>
+								<span className={nickname ? 'text-foreground' : 'text-muted-foreground'}>
+									{nickname || '输入你的昵称'}
+								</span>
+							</button>
+						) : (
+							<Input
+								value={nickname}
+								onChange={(e) => setNickname(e.target.value)}
+								placeholder="输入你的昵称"
+								maxLength={20}
+								className="text-base"
+							/>
+						)}
 					</div>
 
 					{/* 头像颜色 */}
