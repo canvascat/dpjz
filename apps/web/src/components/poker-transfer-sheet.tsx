@@ -18,6 +18,10 @@ interface PokerTransferSheetProps {
 	target: PokerMember | null
 	/** 当前茶位费率 */
 	teaRate: number
+	/** 茶位费累计上限（分），达到后不再扣 */
+	teaCap: number
+	/** 当前茶池已累计（分） */
+	teaBalance: number
 	onConfirm: (toUserId: string, amount: number) => void
 	onClose: () => void
 }
@@ -25,6 +29,8 @@ interface PokerTransferSheetProps {
 export function PokerTransferSheet({
 	target,
 	teaRate,
+	teaCap,
+	teaBalance,
 	onConfirm,
 	onClose,
 }: PokerTransferSheetProps) {
@@ -37,8 +43,18 @@ export function PokerTransferSheet({
 	const amount = value.trim() === '' ? 0 : parseInt(value, 10)
 	const isValid =
 		value.trim() !== '' && Number.isInteger(amount) && amount > 0
-	const teaAmount = isValid ? Math.max(0, Math.floor(amount * teaRate)) : 0
+	// 茶位费已满（剩余可扣为 0）时不再扣，也不显示茶相关提示
+	const effectiveCap = teaCap >= 1 ? teaCap : 0
+	const remainingCap = Math.max(0, effectiveCap - teaBalance)
+	const teaAmount =
+		isValid && remainingCap > 0 && teaRate > 0
+			? Math.min(
+					Math.max(1, Math.floor(amount * teaRate)),
+					remainingCap,
+				)
+			: 0
 	const netAmount = isValid ? amount - teaAmount : 0
+	const showTeaHint = teaRate > 0 && remainingCap > 0
 
 	const handleConfirm = () => {
 		if (!target || !isValid) return
@@ -68,7 +84,9 @@ export function PokerTransferSheet({
 					</SheetTitle>
 					<SheetDescription>
 						输入要转出的分数
-						{teaRate > 0 ? `，当前茶位费 ${Math.round(teaRate * 100)}%` : ''}
+						{showTeaHint
+							? `，当前茶位费 ${Math.round(teaRate * 100)}%`
+							: ''}
 					</SheetDescription>
 				</SheetHeader>
 

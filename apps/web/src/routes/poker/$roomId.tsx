@@ -101,6 +101,8 @@ function PokerRoom() {
 			<PokerTransferSheet
 				target={transferTarget}
 				teaRate={teaRate}
+				teaCap={teaCap}
+				teaBalance={teaBalance}
 				onConfirm={transfer}
 				onClose={() => setTransferTarget(null)}
 			/>
