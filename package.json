@@ -11,7 +11,7 @@
 		"format": "pnpm --filter web format",
 		"check": "pnpm --filter web check",
 		"signaling:start": "pnpm --filter signaling start",
-		"deploy:web": "pnpm --filter web deploy",
+		"deploy:web": "pnpm --filter web run deploy",
 		"deploy:signaling": "pnpm --filter signaling-cf deploy"
 	},
 	"devDependencies": {

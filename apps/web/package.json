@@ -4,7 +4,6 @@
 	"type": "module",
 	"scripts": {
 		"dev": "vite",
-		"generate-icons": "node scripts/generate-icons.mjs",
 		"build": "vite build",
 		"preview": "vite preview",
 		"deploy": "vite build && wrangler pages deploy dist --project-name=dpjz",
