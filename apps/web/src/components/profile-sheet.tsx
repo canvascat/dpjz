@@ -21,6 +21,8 @@ import { cn } from '@/lib/utils'
 
 interface ProfileSheetProps {
 	trigger?: React.ReactNode
+	open?: boolean
+	onOpenChange?: (open: boolean) => void
 }
 
 function useIsMobile() {
@@ -35,7 +37,7 @@ function useIsMobile() {
 	return isMobile
 }
 
-export function ProfileSheet({ trigger }: ProfileSheetProps) {
+export function ProfileSheet({ trigger, open: controlledOpen, onOpenChange: controlledOnOpenChange }: ProfileSheetProps) {
 	const { user, update } = useLocalUser()
 	const [nickname, setNickname] = useState(user.nickname)
 	// 草稿：仅保存后生效
@@ -46,7 +48,10 @@ export function ProfileSheet({ trigger }: ProfileSheetProps) {
 	const [draftNotionConfig, setDraftNotionConfig] = useState<
 		NotionAvatarConfig | undefined
 	>(user.notionAvatarConfig)
-	const [open, setOpen] = useState(false)
+	const [internalOpen, setInternalOpen] = useState(false)
+	const isControlled = controlledOpen !== undefined
+	const open = isControlled ? controlledOpen : internalOpen
+	const setOpen = isControlled ? (controlledOnOpenChange ?? (() => {})) : setInternalOpen
 	const isMobile = useIsMobile()
 
 	const handleSave = () => {

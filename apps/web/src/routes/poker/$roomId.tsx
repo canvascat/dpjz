@@ -35,6 +35,8 @@ function PokerRoom() {
 	const [transferTarget, setTransferTarget] = useState<PokerMember | null>(null)
 	// 茶位费弹窗
 	const [teaOpen, setTeaOpen] = useState(false)
+	// 个人信息抽屉（成员栏点击自己时打开）
+	const [profileOpen, setProfileOpen] = useState(false)
 
 	// 记录最近房间
 	useEffect(() => {
@@ -68,6 +70,8 @@ function PokerRoom() {
 				<ShareDialog roomId={roomId} roomType="poker" />
 
 				<ProfileSheet
+					open={profileOpen}
+					onOpenChange={setProfileOpen}
 					trigger={
 						<Button variant="ghost" size="icon" className="h-9 w-9">
 							<User className="h-4 w-4" />
@@ -86,6 +90,7 @@ function PokerRoom() {
 				teaBalance={teaBalance}
 				onMemberClick={(m) => setTransferTarget(m)}
 				onTeaClick={() => setTeaOpen(true)}
+				onSelfClick={() => setProfileOpen(true)}
 			/>
 
 			{/* 流水记录 */}

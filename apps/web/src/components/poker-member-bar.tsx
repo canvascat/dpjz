@@ -11,6 +11,7 @@ interface PokerMemberBarProps {
 	teaBalance: number
 	onMemberClick: (member: PokerMember) => void
 	onTeaClick: () => void
+	onSelfClick?: () => void
 }
 
 function formatScore(n: number): string {
@@ -35,6 +36,7 @@ export function PokerMemberBar({
 	teaBalance,
 	onMemberClick,
 	onTeaClick,
+	onSelfClick,
 }: PokerMemberBarProps) {
 	return (
 		<div className="flex shrink-0 items-start gap-1 overflow-x-auto border-b px-3 py-3 sm:px-4">
@@ -47,8 +49,8 @@ export function PokerMemberBar({
 				return (
 					<button
 						key={m.userId}
-						disabled={isMe}
-						onClick={() => onMemberClick(m)}
+						disabled={isMe && !onSelfClick}
+						onClick={() => (isMe ? onSelfClick?.() : onMemberClick(m))}
 						className="flex min-w-[56px] flex-col items-center gap-1 rounded-lg px-1.5 py-1.5 transition-colors hover:bg-muted/60 active:bg-muted disabled:opacity-100 disabled:hover:bg-transparent"
 					>
 						{/* 头像：固定尺寸保证文本/Notion 头像高度一致，不 overflow-hidden 以保留角标 */}
