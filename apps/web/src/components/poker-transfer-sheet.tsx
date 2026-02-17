@@ -34,9 +34,10 @@ export function PokerTransferSheet({
 		if (target) setValue('')
 	}, [target])
 
-	const amount = Number(value)
-	const isValid = value.trim() !== '' && Number.isFinite(amount) && amount > 0
-	const teaAmount = isValid ? Math.round(amount * teaRate * 100) / 100 : 0
+	const amount = value.trim() === '' ? 0 : parseInt(value, 10)
+	const isValid =
+		value.trim() !== '' && Number.isInteger(amount) && amount > 0
+	const teaAmount = isValid ? Math.max(0, Math.floor(amount * teaRate)) : 0
 	const netAmount = isValid ? amount - teaAmount : 0
 
 	const handleConfirm = () => {
@@ -72,6 +73,22 @@ export function PokerTransferSheet({
 				</SheetHeader>
 
 				<div className="space-y-4 px-5 pt-4 pb-4">
+					{/* 预览：有输入时显示，无输入时仅占位以保持弹层高度不变 */}
+					<div className="flex min-h-[52px] items-center justify-center gap-3 rounded-lg bg-muted/60 p-3 text-sm">
+						{isValid && (
+							<>
+								<span className="font-medium text-red-500">-{amount}</span>
+								<ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+								<span className="font-medium text-green-600">+{netAmount}</span>
+								{teaAmount > 0 && (
+									<span className="text-xs text-muted-foreground">
+										(茶 {teaAmount})
+									</span>
+								)}
+							</>
+						)}
+					</div>
+
 					{/* 页内数字键盘 */}
 					<NumericKeypad
 						value={value}
@@ -87,20 +104,6 @@ export function PokerTransferSheet({
 						maxLength={4}
 						showDisplay
 					/>
-
-					{/* 预览 */}
-					{isValid && (
-						<div className="flex items-center justify-center gap-3 rounded-lg bg-muted/60 p-3 text-sm">
-							<span className="font-medium text-red-500">-{amount}</span>
-							<ArrowRight className="h-4 w-4 text-muted-foreground" />
-							<span className="font-medium text-green-600">+{netAmount}</span>
-							{teaAmount > 0 && (
-								<span className="text-xs text-muted-foreground">
-									(茶 {teaAmount})
-								</span>
-							)}
-						</div>
-					)}
 
 					{/* 确认 */}
 					<Button
