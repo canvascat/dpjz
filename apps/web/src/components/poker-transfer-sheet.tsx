@@ -48,10 +48,17 @@ export function PokerTransferSheet({
 	onClose,
 }: PokerTransferSheetProps) {
 	const [value, setValue] = useState('')
+	const [limitHint, setLimitHint] = useState('')
 
 	useEffect(() => {
 		if (target) setValue('')
 	}, [target])
+
+	useEffect(() => {
+		if (!limitHint) return
+		const t = setTimeout(() => setLimitHint(''), 2000)
+		return () => clearTimeout(t)
+	}, [limitHint])
 
 	const amount = value.trim() === '' ? 0 : parseInt(value, 10)
 	const isValid =
@@ -156,7 +163,13 @@ export function PokerTransferSheet({
 						placeholder="输入分数"
 						maxLength={4}
 						showDisplay
+						onLimitReached={() => setLimitHint('最多 9999 分')}
 					/>
+					{limitHint && (
+						<p className="text-center text-xs text-muted-foreground">
+							{limitHint}
+						</p>
+					)}
 
 					{/* 确认 */}
 					<Button

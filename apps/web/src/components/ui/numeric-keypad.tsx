@@ -10,6 +10,8 @@ export interface NumericKeypadProps {
 	placeholder?: string
 	/** 最多位数，不传则不限制 */
 	maxLength?: number
+	/** 已达位数上限时用户继续输入时的回调，用于显示提示 */
+	onLimitReached?: () => void
 	/** 是否仅整数（不显示小数点键），默认 true */
 	integerOnly?: boolean
 	/** 是否显示上方数字展示区，默认 true；为 false 时仅渲染键盘，由外部提供展示 */
@@ -29,6 +31,7 @@ export function NumericKeypad({
 	onChange,
 	placeholder = '0',
 	maxLength,
+	onLimitReached,
 	integerOnly = true,
 	showDisplay = true,
 	className,
@@ -36,7 +39,10 @@ export function NumericKeypad({
 	feedback = true,
 }: NumericKeypadProps) {
 	const handleDigit = (digit: string) => {
-		if (maxLength != null && value.length >= maxLength) return
+		if (maxLength != null && value.length >= maxLength) {
+			onLimitReached?.()
+			return
+		}
 		onChange(value + digit)
 	}
 
