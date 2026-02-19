@@ -32,7 +32,7 @@ export function NumericKeypad({
 	placeholder = '0',
 	maxLength,
 	onLimitReached,
-	integerOnly = true,
+	integerOnly: _integerOnly = true,
 	showDisplay = true,
 	className,
 	displayClassName,

@@ -54,7 +54,8 @@ export function ShareDialog({
 	}, [shareUrl])
 
 	const handleShare = useCallback(async () => {
-		if (navigator.share) {
+		// Runtime check: share API not in all environments
+		if (typeof navigator !== 'undefined' && 'share' in navigator) {
 			try {
 				await navigator.share({
 					title: `加入聊天室 ${roomId}`,

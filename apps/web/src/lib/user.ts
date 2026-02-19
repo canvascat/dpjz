@@ -81,8 +81,11 @@ export function getLocalUser(): LocalUser {
 		try {
 			const parsed = JSON.parse(raw) as LocalUser & { avatarType?: AvatarType }
 			if (parsed.id && parsed.nickname && parsed.avatarColor) {
+				const rawType = (parsed as { avatarType?: AvatarType }).avatarType
 				const avatarType: AvatarType =
-					parsed.avatarType ?? (parsed.notionAvatarConfig ? 'notion' : 'text')
+					rawType === 'text' || rawType === 'notion'
+						? rawType
+						: (parsed.notionAvatarConfig ? 'notion' : 'text')
 				return {
 					...parsed,
 					avatarType,

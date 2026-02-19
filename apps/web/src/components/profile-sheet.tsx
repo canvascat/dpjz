@@ -37,7 +37,11 @@ function useIsMobile() {
 	return isMobile
 }
 
-export function ProfileSheet({ trigger, open: controlledOpen, onOpenChange: controlledOnOpenChange }: ProfileSheetProps) {
+export function ProfileSheet({
+	trigger,
+	open: controlledOpen,
+	onOpenChange: controlledOnOpenChange,
+}: ProfileSheetProps) {
 	const { user, update } = useLocalUser()
 	const [nickname, setNickname] = useState(user.nickname)
 	// 草稿：仅保存后生效
@@ -51,7 +55,9 @@ export function ProfileSheet({ trigger, open: controlledOpen, onOpenChange: cont
 	const [internalOpen, setInternalOpen] = useState(false)
 	const isControlled = controlledOpen !== undefined
 	const open = isControlled ? controlledOpen : internalOpen
-	const setOpen = isControlled ? (controlledOnOpenChange ?? (() => {})) : setInternalOpen
+	const setOpen = isControlled
+		? (controlledOnOpenChange ?? (() => {}))
+		: setInternalOpen
 	const isMobile = useIsMobile()
 
 	const handleSave = () => {

@@ -17,6 +17,7 @@ export function useLocalUser() {
 
 		const handler = (e: Event) => {
 			const detail = (e as CustomEvent<LocalUser>).detail
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- runtime event may have no detail
 			if (detail) {
 				setUser(detail)
 			} else {

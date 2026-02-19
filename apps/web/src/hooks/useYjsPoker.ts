@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import * as Y from 'yjs'
 import type { IndexeddbPersistence } from 'y-indexeddb'

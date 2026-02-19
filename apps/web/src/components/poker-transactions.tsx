@@ -55,8 +55,10 @@ export function PokerTransactions({
 				const toAvatarColor = toMember?.avatarColor ?? t.toAvatarColor
 				const fromAvatarType = fromMember?.avatarType ?? t.fromAvatarType
 				const toAvatarType = toMember?.avatarType ?? t.toAvatarType
-				const fromNotionConfig = fromMember?.notionAvatarConfig ?? t.fromNotionAvatarConfig
-				const toNotionConfig = toMember?.notionAvatarConfig ?? t.toNotionAvatarConfig
+				const fromNotionConfig =
+					fromMember?.notionAvatarConfig ?? t.fromNotionAvatarConfig
+				const toNotionConfig =
+					toMember?.notionAvatarConfig ?? t.toNotionAvatarConfig
 
 				return (
 					<div

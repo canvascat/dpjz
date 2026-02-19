@@ -34,7 +34,9 @@ export function getNotionAvatarConfig(userId: string): NotionAvatarConfig {
 	const seed = hashString(userId)
 	const config = {} as NotionAvatarConfig
 	let s = seed
-	const parts = Object.keys(NOTION_AVATAR_PART_COUNTS) as Array<NotionAvatarPart>
+	const parts = Object.keys(
+		NOTION_AVATAR_PART_COUNTS,
+	) as Array<NotionAvatarPart>
 	for (const part of parts) {
 		const count = NOTION_AVATAR_PART_COUNTS[part]
 		s = (s * 9301 + 49297) % 233280
@@ -46,7 +48,9 @@ export function getNotionAvatarConfig(userId: string): NotionAvatarConfig {
 /** 随机生成一套 Notion 头像配置 */
 export function getRandomNotionAvatarConfig(): NotionAvatarConfig {
 	const config = {} as NotionAvatarConfig
-	const parts = Object.keys(NOTION_AVATAR_PART_COUNTS) as Array<NotionAvatarPart>
+	const parts = Object.keys(
+		NOTION_AVATAR_PART_COUNTS,
+	) as Array<NotionAvatarPart>
 	for (const part of parts) {
 		const count = NOTION_AVATAR_PART_COUNTS[part]
 		config[part] = Math.floor(Math.random() * count)

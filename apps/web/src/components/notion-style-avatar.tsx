@@ -1,13 +1,11 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import type {NotionAvatarConfig, NotionAvatarPart} from '@/lib/notion-avatar';
+import type { NotionAvatarConfig, NotionAvatarPart } from '@/lib/notion-avatar'
 import { cn } from '@/lib/utils'
 import {
 	NOTION_AVATAR_LAYER_ORDER,
-	
-	
-	getNotionAvatarConfig
+	getNotionAvatarConfig,
 } from '@/lib/notion-avatar'
 
 export interface NotionStyleAvatarProps {

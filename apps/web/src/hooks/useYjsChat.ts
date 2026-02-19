@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import { useCallback, useEffect, useRef, useState } from 'react'
 import * as Y from 'yjs'
 import type { IndexeddbPersistence } from 'y-indexeddb'
@@ -122,9 +123,8 @@ export function useYjsChat(
 		let disposed = false
 		const doc = new Y.Doc()
 		const messagesArray = doc.getArray<Y.Map<string | number>>('messages')
-		const clipboardRequests = doc.getMap<Y.Map<string | number>>(
-			'clipboardRequests',
-		)
+		const clipboardRequests =
+			doc.getMap<Y.Map<string | number>>('clipboardRequests')
 		const clipboardResponses = doc.getMap('clipboardResponses')
 		const fileSignals = doc.getMap<Y.Map<string | number>>('fileSignals')
 
@@ -171,7 +171,7 @@ export function useYjsChat(
 		const readPendingRequests = () => {
 			const list: Array<PendingClipboardRequest> = []
 			clipboardRequests.forEach((val, requestId) => {
-				const yMap = val as Y.Map<string | number>
+				const yMap = val
 				const toUserId = yMap.get('toUserId') as string
 				if (toUserId === localUserRef.current.id) {
 					list.push({
@@ -241,9 +241,9 @@ export function useYjsChat(
 		const cleanupStaleRequests = () => {
 			if (disposed) return
 			const now = Date.now()
-			const toDelete: string[] = []
+			const toDelete: Array<string> = []
 			clipboardRequests.forEach((val, requestId) => {
-				const yMap = val as Y.Map<string | number>
+				const yMap = val
 				const createdAt = yMap.get('createdAt') as number | undefined
 				if (
 					typeof createdAt === 'number' &&
@@ -268,7 +268,7 @@ export function useYjsChat(
 			doc,
 			messagesArray,
 			clipboardRequests: clipboardRequests as Y.Map<unknown>,
-			clipboardResponses: clipboardResponses as Y.Map<unknown>,
+			clipboardResponses: clipboardResponses,
 			fileSignals: fileSignals as Y.Map<unknown>,
 		}
 		setDocReady(true)
@@ -332,7 +332,7 @@ export function useYjsChat(
 				messagesArray,
 				webrtcProvider,
 				clipboardRequests: clipboardRequests as Y.Map<unknown>,
-				clipboardResponses: clipboardResponses as Y.Map<unknown>,
+				clipboardResponses: clipboardResponses,
 				fileSignals: fileSignals as Y.Map<unknown>,
 			}
 

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-condition, @typescript-eslint/no-unnecessary-type-assertion */
 import { useCallback, useEffect, useRef, useState } from 'react'
 import * as Y from 'yjs'
 import type { IncomingFileOffer, PeerInfo } from '@/hooks/useYjsChat'
@@ -51,9 +52,9 @@ export function useFileTransfer(
 	localNickname: string,
 	peers: Array<PeerInfo>,
 ): UseFileTransferReturn {
-	const [incomingOffers, setIncomingOffers] = useState<Array<IncomingFileOffer>>(
-		[],
-	)
+	const [incomingOffers, setIncomingOffers] = useState<
+		Array<IncomingFileOffer>
+	>([])
 	const [sendProgress, setSendProgress] = useState<SendProgress | null>(null)
 	const [receiveProgress, setReceiveProgress] =
 		useState<ReceiveProgress | null>(null)
@@ -85,7 +86,7 @@ export function useFileTransfer(
 		const readIncomingOffers = () => {
 			const list: Array<IncomingFileOffer> = []
 			fileSignals.forEach((val, sessionId) => {
-				const yMap = val as Y.Map<string | number>
+				const yMap = val
 				const type = yMap.get('type') as string
 				const toUserId = yMap.get('toUserId') as string
 				if (type === 'offer' && toUserId === localUserIdRef.current) {
@@ -173,9 +174,7 @@ export function useFileTransfer(
 				})
 				.catch(() => {
 					setSendProgress((p) =>
-						p?.sessionId === sessionId
-							? { ...p, status: 'error' }
-							: p,
+						p?.sessionId === sessionId ? { ...p, status: 'error' } : p,
 					)
 					sessionPeersRef.current.get(sessionId)?.pc.close()
 					sessionPeersRef.current.delete(sessionId)
@@ -184,7 +183,7 @@ export function useFileTransfer(
 			// 监听 answer 和 ice（来自 toUserId = 接收方）
 			const checkSignals = () => {
 				fileSignals.forEach((val) => {
-					const yMap = val as Y.Map<string | number>
+					const yMap = val
 					const sigType = yMap.get('type') as string
 					const sigFrom = yMap.get('fromUserId') as string
 					const sigSession = yMap.get('sessionId') as string
@@ -194,9 +193,9 @@ export function useFileTransfer(
 						if (sdp) {
 							try {
 								const desc = JSON.parse(sdp)
-								pc.setRemoteDescription(
-									new RTCSessionDescription(desc),
-								).catch(() => {})
+								pc.setRemoteDescription(new RTCSessionDescription(desc)).catch(
+									() => {},
+								)
 							} catch {}
 						}
 					} else if (sigType === 'ice') {
@@ -243,10 +242,7 @@ export function useFileTransfer(
 						pc.close()
 						fileSignals.unobserve(observer)
 						sessionPeersRef.current.delete(sessionId)
-						setTimeout(
-							() => clearSessionFromSignals(sessionId),
-							500,
-						)
+						setTimeout(() => clearSessionFromSignals(sessionId), 500)
 						return
 					}
 					const chunk = file.slice(offset, offset + CHUNK_SIZE)
@@ -254,14 +250,9 @@ export function useFileTransfer(
 					reader.onload = () => {
 						dc.send(reader.result as ArrayBuffer)
 						offset += CHUNK_SIZE
-						const percent = Math.min(
-							99,
-							Math.round((offset / file.size) * 100),
-						)
+						const percent = Math.min(99, Math.round((offset / file.size) * 100))
 						setSendProgress((p) =>
-							p?.sessionId === sessionId
-								? { ...p, percent }
-								: p,
+							p?.sessionId === sessionId ? { ...p, percent } : p,
 						)
 						sendChunk()
 					}
@@ -284,7 +275,7 @@ export function useFileTransfer(
 	const acceptOffer = useCallback(
 		(sessionId: string) => {
 			if (!doc || !fileSignals) return
-			const yMap = fileSignals.get(sessionId) as Y.Map<string | number> | undefined
+			const yMap = fileSignals.get(sessionId)
 			if (!yMap) return
 			const type = yMap.get('type') as string
 			if (type !== 'offer') return
@@ -325,7 +316,7 @@ export function useFileTransfer(
 			pc.ondatachannel = (e) => {
 				const dc = e.channel
 				dc.binaryType = 'arraybuffer'
-				const chunks: ArrayBuffer[] = []
+				const chunks: Array<ArrayBuffer> = []
 				let meta: { fileName: string; fileSize: number } | null = null
 				dc.onmessage = (ev) => {
 					if (typeof ev.data === 'string') {
@@ -386,9 +377,7 @@ export function useFileTransfer(
 					})
 					.catch(() => {
 						setReceiveProgress((p) =>
-							p?.sessionId === sessionId
-								? { ...p, status: 'error' }
-								: p,
+							p?.sessionId === sessionId ? { ...p, status: 'error' } : p,
 						)
 						pc.close()
 						sessionPeersRef.current.delete(sessionId)
@@ -403,34 +392,33 @@ export function useFileTransfer(
 
 			// 处理发送方发来的 ice（key 可能是 sessionId-ice-*）
 			fileSignals.forEach((val) => {
-				const yMap = val as Y.Map<string | number>
-				if ((yMap.get('sessionId') as string) !== sessionId) return
-				if ((yMap.get('toUserId') as string) !== localUserIdRef.current)
-					return
-				if ((yMap.get('type') as string) === 'ice') {
-					const cand = yMap.get('candidate') as string
+				const sigMap = val as Y.Map<string | number>
+				if ((sigMap.get('sessionId') as string) !== sessionId) return
+				if ((sigMap.get('toUserId') as string) !== localUserIdRef.current) return
+				if ((sigMap.get('type') as string) === 'ice') {
+					const cand = sigMap.get('candidate') as string
 					if (cand) {
 						try {
-							pc.addIceCandidate(
-								new RTCIceCandidate(JSON.parse(cand)),
-							).catch(() => {})
+							pc.addIceCandidate(new RTCIceCandidate(JSON.parse(cand))).catch(
+								() => {},
+							)
 						} catch {}
 					}
 				}
 			})
 			const iceObserver = () => {
 				fileSignals.forEach((val) => {
-					const yMap = val as Y.Map<string | number>
-					if ((yMap.get('sessionId') as string) !== sessionId) return
-					if ((yMap.get('toUserId') as string) !== localUserIdRef.current)
+					const sigMapInner = val as Y.Map<string | number>
+					if ((sigMapInner.get('sessionId') as string) !== sessionId) return
+					if ((sigMapInner.get('toUserId') as string) !== localUserIdRef.current)
 						return
-					if ((yMap.get('type') as string) === 'ice') {
-						const cand = yMap.get('candidate') as string
+					if ((sigMapInner.get('type') as string) === 'ice') {
+						const cand = sigMapInner.get('candidate') as string
 						if (cand) {
 							try {
-								pc.addIceCandidate(
-									new RTCIceCandidate(JSON.parse(cand)),
-								).catch(() => {})
+								pc.addIceCandidate(new RTCIceCandidate(JSON.parse(cand))).catch(
+									() => {},
+								)
 							} catch {}
 						}
 					}
@@ -445,9 +433,7 @@ export function useFileTransfer(
 		(sessionId: string) => {
 			if (!doc || !fileSignals) return
 			doc.transact(() => {
-				const existing = fileSignals.get(sessionId) as
-					| Y.Map<string | number>
-					| undefined
+				const existing = fileSignals.get(sessionId)
 				if (existing) {
 					existing.set('rejected', 1)
 					fileSignals.set(sessionId, existing)
@@ -463,16 +449,14 @@ export function useFileTransfer(
 		if (!doc || !fileSignals) return
 		const observer = () => {
 			fileSignals.forEach((val) => {
-				const yMap = val as Y.Map<string | number>
-				if ((yMap.get('fromUserId') as string) !== localUserIdRef.current)
+				const rejectedMap = val as Y.Map<string | number>
+				if ((rejectedMap.get('fromUserId') as string) !== localUserIdRef.current)
 					return
-				if (!yMap.get('rejected')) return
-				const sigSessionId = yMap.get('sessionId') as string
+				if (!rejectedMap.get('rejected')) return
+				const sigSessionId = rejectedMap.get('sessionId') as string
 				if (!sigSessionId) return
 				setSendProgress((p) =>
-					p?.sessionId === sigSessionId
-						? { ...p, status: 'rejected' }
-						: p,
+					p?.sessionId === sigSessionId ? { ...p, status: 'rejected' } : p,
 				)
 				sessionPeersRef.current.get(sigSessionId)?.pc.close()
 				sessionPeersRef.current.delete(sigSessionId)
@@ -488,17 +472,18 @@ export function useFileTransfer(
 		setReceiveProgress(null)
 	}, [])
 
-	const cancelSend = useCallback((sessionId: string) => {
-		const entry = sessionPeersRef.current.get(sessionId)
-		if (entry) {
-			entry.pc.close()
-			sessionPeersRef.current.delete(sessionId)
-		}
-		setSendProgress((p) =>
-			p?.sessionId === sessionId ? null : p,
-		)
-		clearSessionFromSignals(sessionId)
-	}, [clearSessionFromSignals])
+	const cancelSend = useCallback(
+		(sessionId: string) => {
+			const entry = sessionPeersRef.current.get(sessionId)
+			if (entry) {
+				entry.pc.close()
+				sessionPeersRef.current.delete(sessionId)
+			}
+			setSendProgress((p) => (p?.sessionId === sessionId ? null : p))
+			clearSessionFromSignals(sessionId)
+		},
+		[clearSessionFromSignals],
+	)
 
 	return {
 		incomingOffers,

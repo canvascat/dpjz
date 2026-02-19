@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { Calculator, Clock, MessageCircle, Trash2 } from 'lucide-react'
 import { useState } from 'react'

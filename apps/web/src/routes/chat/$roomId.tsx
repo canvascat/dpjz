@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import { Link, createFileRoute } from '@tanstack/react-router'
 import { ArrowLeft, Send, Users } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
@@ -30,8 +31,8 @@ import {
 	isClipboardAutoAllow,
 } from '@/lib/clipboard-auto-allow'
 import {
-	formatFileSize,
 	MAX_FILE_SIZE,
+	formatFileSize,
 	useFileTransfer,
 } from '@/hooks/useFileTransfer'
 import { useLocalUser } from '@/hooks/useLocalUser'
@@ -56,12 +57,7 @@ function ChatRoom() {
 		receivedClipboard,
 		consumeClipboardResponse,
 	} = useYjsChat(roomId, user)
-	const fileTransfer = useFileTransfer(
-		doc,
-		user.id,
-		user.nickname,
-		peers,
-	)
+	const fileTransfer = useFileTransfer(doc, user.id, user.nickname, peers)
 	const {
 		incomingOffers,
 		sendProgress,
@@ -354,7 +350,9 @@ function ChatRoom() {
 			{/* 收到的剪切板内容 */}
 			<Sheet
 				open={!!receivedClipboard}
-				onOpenChange={(open) => !open && receivedClipboard && consumeClipboardResponse()}
+				onOpenChange={(open) =>
+					!open && receivedClipboard && consumeClipboardResponse()
+				}
 			>
 				<SheetContent side="bottom" className="rounded-t-2xl">
 					<SheetHeader className="text-left">
@@ -406,8 +404,7 @@ function ChatRoom() {
 							variant="outline"
 							className="w-full min-h-[44px]"
 							onClick={() =>
-								incomingFileOffer &&
-								rejectOffer(incomingFileOffer.sessionId)
+								incomingFileOffer && rejectOffer(incomingFileOffer.sessionId)
 							}
 						>
 							拒绝
@@ -415,8 +412,7 @@ function ChatRoom() {
 						<Button
 							className="w-full min-h-[44px]"
 							onClick={() =>
-								incomingFileOffer &&
-								acceptOffer(incomingFileOffer.sessionId)
+								incomingFileOffer && acceptOffer(incomingFileOffer.sessionId)
 							}
 						>
 							接受
@@ -433,7 +429,8 @@ function ChatRoom() {
 							{sendProgress.status === 'connecting' && '连接中…'}
 							{sendProgress.status === 'sending' &&
 								`发送给 ${sendProgress.toNickname} ${sendProgress.percent}%`}
-							{sendProgress.status === 'done' && `已发送给 ${sendProgress.toNickname}`}
+							{sendProgress.status === 'done' &&
+								`已发送给 ${sendProgress.toNickname}`}
 							{sendProgress.status === 'error' && '发送失败'}
 							{sendProgress.status === 'rejected' && '对方已拒绝'}
 						</span>
@@ -448,7 +445,8 @@ function ChatRoom() {
 							</Button>
 						)}
 					</div>
-					{(sendProgress.status === 'sending' || sendProgress.status === 'done') && (
+					{(sendProgress.status === 'sending' ||
+						sendProgress.status === 'done') && (
 						<div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
 							<div
 								className="h-full bg-primary transition-all"
@@ -463,7 +461,8 @@ function ChatRoom() {
 			{receiveProgress && receiveProgress.status === 'receiving' && (
 				<div className="fixed bottom-20 left-3 right-3 z-40 rounded-lg border bg-background p-3 shadow-lg sm:left-auto sm:right-4 sm:max-w-sm">
 					<div className="text-sm">
-						{receiveProgress.fromNickname} 发送 {receiveProgress.fileName}：{receiveProgress.percent}%
+						{receiveProgress.fromNickname} 发送 {receiveProgress.fileName}：
+						{receiveProgress.percent}%
 					</div>
 					<div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
 						<div

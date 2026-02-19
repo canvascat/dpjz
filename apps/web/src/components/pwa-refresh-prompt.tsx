@@ -31,11 +31,7 @@ export function PwaRefreshPrompt() {
 				aria-hidden
 			/>
 			<span className="text-sm text-foreground">发现新版本</span>
-			<Button
-				size="sm"
-				onClick={handleRefresh}
-				disabled={refreshing}
-			>
+			<Button size="sm" onClick={handleRefresh} disabled={refreshing}>
 				{refreshing ? (
 					<>
 						<Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />

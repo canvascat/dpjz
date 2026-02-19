@@ -55,17 +55,13 @@ export function PokerTransferSheet({
 	}, [target])
 
 	const amount = value.trim() === '' ? 0 : parseInt(value, 10)
-	const isValid =
-		value.trim() !== '' && Number.isInteger(amount) && amount > 0
+	const isValid = value.trim() !== '' && Number.isInteger(amount) && amount > 0
 	// 茶位费已满（剩余可扣为 0）时不再扣，也不显示茶相关提示
 	const effectiveCap = teaCap >= 1 ? teaCap : 0
 	const remainingCap = Math.max(0, effectiveCap - teaBalance)
 	const teaAmount =
 		isValid && remainingCap > 0 && teaRate > 0
-			? Math.min(
-					Math.max(1, Math.floor(amount * teaRate)),
-					remainingCap,
-				)
+			? Math.min(Math.max(1, Math.floor(amount * teaRate)), remainingCap)
 			: 0
 	const netAmount = isValid ? amount - teaAmount : 0
 	const showTeaHint = teaRate > 0 && remainingCap > 0
@@ -98,9 +94,7 @@ export function PokerTransferSheet({
 					</SheetTitle>
 					<SheetDescription>
 						输入要转出的分数
-						{showTeaHint
-							? `，当前茶位费 ${Math.round(teaRate * 100)}%`
-							: ''}
+						{showTeaHint ? `，当前茶位费 ${Math.round(teaRate * 100)}%` : ''}
 					</SheetDescription>
 				</SheetHeader>
 
@@ -132,7 +126,9 @@ export function PokerTransferSheet({
 										size="default"
 										className="shrink-0"
 									/>
-									<span className="font-medium text-green-600">+{netAmount}</span>
+									<span className="font-medium text-green-600">
+										+{netAmount}
+									</span>
 								</div>
 								{teaAmount > 0 && (
 									<span className="text-xs text-muted-foreground">
