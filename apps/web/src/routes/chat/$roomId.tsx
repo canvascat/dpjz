@@ -72,10 +72,20 @@ function ChatRoom() {
 	const [input, setInput] = useState('')
 	const [selectedPeer, setSelectedPeer] = useState<PeerInfo | null>(null)
 	const [profileOpen, setProfileOpen] = useState(false)
+	const [isMobile, setIsMobile] = useState(false)
 	const messagesEndRef = useRef<HTMLDivElement>(null)
 	const inputRef = useRef<HTMLInputElement>(null)
 	const fileInputRef = useRef<HTMLInputElement>(null)
 	const pendingFilePeerRef = useRef<PeerInfo | null>(null)
+
+	// 移动端：窄屏时用 window.prompt 输入
+	useEffect(() => {
+		const mq = window.matchMedia('(max-width: 767px)')
+		const handler = () => setIsMobile(mq.matches)
+		handler()
+		mq.addEventListener('change', handler)
+		return () => mq.removeEventListener('change', handler)
+	}, [])
 
 	// 仅对未设为「不再询问」的请求弹窗；已信任的请求自动代为同意
 	const pendingRequestsToShow = pendingClipboardRequests.filter(
@@ -126,6 +136,13 @@ function ChatRoom() {
 		if (e.key === 'Enter' && !e.shiftKey) {
 			e.preventDefault()
 			handleSend()
+		}
+	}
+
+	const handleMobileInputClick = () => {
+		const text = window.prompt('输入消息...')
+		if (text != null && text.trim()) {
+			sendMessage(text.trim())
 		}
 	}
 
@@ -269,27 +286,47 @@ function ChatRoom() {
 				<div ref={messagesEndRef} />
 			</div>
 
-			{/* 输入区域 */}
+			{/* 输入区域：移动端样式同桌面，点击用 window.prompt；桌面端内联输入 */}
 			<div className="shrink-0 border-t bg-background px-3 py-3 sm:px-4">
-				<div className="flex items-center gap-2">
-					<input
-						ref={inputRef}
-						type="text"
-						value={input}
-						onChange={(e) => setInput(e.target.value)}
-						onKeyDown={handleKeyDown}
-						placeholder="输入消息..."
-						className="min-h-[44px] flex-1 rounded-xl border bg-muted/50 px-4 py-2.5 text-sm transition-colors focus:bg-background focus:ring-2 focus:ring-ring focus:outline-none"
-					/>
-					<Button
-						onClick={handleSend}
-						disabled={!input.trim()}
-						size="icon"
-						className="h-11 w-11 shrink-0 rounded-xl"
-					>
-						<Send className="h-4 w-4" />
-					</Button>
-				</div>
+				{isMobile ? (
+					<div className="flex items-center gap-2">
+						<button
+							type="button"
+							onClick={handleMobileInputClick}
+							className="min-h-[44px] flex-1 rounded-xl border bg-muted/50 px-4 py-2.5 text-left text-sm text-muted-foreground transition-colors focus:bg-background focus:ring-2 focus:ring-ring focus:outline-none active:bg-muted"
+						>
+							输入消息...
+						</button>
+						<Button
+							type="button"
+							onClick={handleMobileInputClick}
+							size="icon"
+							className="h-11 w-11 shrink-0 rounded-xl"
+						>
+							<Send className="h-4 w-4" />
+						</Button>
+					</div>
+				) : (
+					<div className="flex items-center gap-2">
+						<input
+							ref={inputRef}
+							type="text"
+							value={input}
+							onChange={(e) => setInput(e.target.value)}
+							onKeyDown={handleKeyDown}
+							placeholder="输入消息..."
+							className="min-h-[44px] flex-1 rounded-xl border bg-muted/50 px-4 py-2.5 text-sm transition-colors focus:bg-background focus:ring-2 focus:ring-ring focus:outline-none"
+						/>
+						<Button
+							onClick={handleSend}
+							disabled={!input.trim()}
+							size="icon"
+							className="h-11 w-11 shrink-0 rounded-xl"
+						>
+							<Send className="h-4 w-4" />
+						</Button>
+					</div>
+				)}
 			</div>
 
 			{/* 点击成员后的操作列表 */}
