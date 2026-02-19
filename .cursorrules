@@ -15,3 +15,10 @@
 - 目标为 **移动端 PWA 应用**，交互和布局优先保证小屏体验。
 - 尽量做到 **全端适配**：用 Tailwind 响应式前缀（`sm:`、`md:`、`lg:` 等）在合适断点扩展布局，避免仅针对某一端写死尺寸。
 - 触控友好：可点击区域足够大、避免过密点击目标，必要时使用 `min-h-[44px]`、`min-w-[44px]` 等。
+
+## 安全区（Safe Area）
+- **前提**：`index.html` 的 viewport meta 需包含 `viewport-fit=cover`，否则 `env(safe-area-inset-*)` 无效。
+- **贴底元素**：所有贴着屏幕底部的元素（如底部输入栏、固定底栏、footer、底部弹出的 Sheet）必须预留底部安全区，避免被 Home 条/圆角遮挡。推荐：`pb-[max(0.75rem,env(safe-area-inset-bottom))]`（至少 0.75rem，有刘海时用系统值）。
+- **贴边元素**：全宽贴左/右或横屏时可能贴边的条状区域，建议同时预留左右安全区：`pl-[max(1rem,env(safe-area-inset-left))]`、`pr-[max(1rem,env(safe-area-inset-right))]`。
+- **固定定位的浮层**：若使用 `fixed` 且 `bottom` 贴底或靠近底部，`bottom` 需叠加安全区，例如 `bottom-[calc(5rem+env(safe-area-inset-bottom))]`，避免浮层压住 Home 条。
+- 新增或修改贴底/贴边 UI 时，检查并加上对应的 safe-area 相关 class。

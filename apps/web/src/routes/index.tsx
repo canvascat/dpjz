@@ -244,7 +244,7 @@ function HomePage() {
 			</main>
 
 			{/* 底部说明 */}
-			<footer className="shrink-0 border-t px-4 py-3 text-center text-xs text-muted-foreground">
+			<footer className="shrink-0 border-t pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] text-center text-xs text-muted-foreground">
 				P2P 模式 · 数据通过 WebRTC 直接传输 · 本地 IndexedDB 持久化
 			</footer>
 		</div>
