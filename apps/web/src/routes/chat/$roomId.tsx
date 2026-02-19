@@ -281,7 +281,7 @@ function ChatRoom() {
 			/>
 
 			{/* 消息区域 */}
-			<div className="flex-1 overflow-y-auto px-3 py-3 sm:px-4">
+			<div className="flex-1 overflow-y-auto overscroll-y-none px-3 py-3 sm:px-4">
 				<ChatMessages messages={messages} currentUserId={user.id} />
 				<div ref={messagesEndRef} />
 			</div>
