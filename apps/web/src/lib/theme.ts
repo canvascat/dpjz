@@ -42,8 +42,8 @@ function applyTheme(pref: ThemePreference) {
 	} else {
 		root.classList.remove('dark')
 	}
-	const meta = document.querySelector('meta[name="theme-color"]') as HTMLMetaElement | null
-	if (meta) {
+	const meta = document.querySelector('meta[name="theme-color"]')
+	if (meta && 'content' in meta) {
 		meta.content = dark ? '#0a0a0a' : '#ffffff'
 	}
 }

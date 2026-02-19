@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { Calculator, Clock, MessageCircle, Settings, Trash2 } from 'lucide-react'
-import { useState } from 'react'
+import { Calculator, Clock, MessageCircle, QrCode, Settings, Trash2 } from 'lucide-react'
+import { useRef, useState } from 'react'
 import type { RoomType } from '@/lib/user'
 
 import { ProfileSheet } from '@/components/profile-sheet'
+import { ScanRoomSheet } from '@/components/scan-room-sheet'
 import { SettingsSheet } from '@/components/settings-sheet'
 import { UserAvatar } from '@/components/notion-style-avatar'
 import { Button } from '@/components/ui/button'
@@ -76,6 +77,8 @@ function HomePage() {
 	const { rooms, remove: removeRoom } = useRecentRooms()
 	const [joinInput, setJoinInput] = useState('')
 	const [settingsOpen, setSettingsOpen] = useState(false)
+	const [scanOpen, setScanOpen] = useState(false)
+	const lastScannedRef = useRef<{ text: string; at: number } | null>(null)
 
 	const handleCreate = (type: RoomType) => {
 		const roomId = generateRoomId()
@@ -99,6 +102,21 @@ function HomePage() {
 
 	const handleJoinKeyDown = (e: React.KeyboardEvent) => {
 		if (e.key === 'Enter') handleJoin()
+	}
+
+	const handleScanSuccess = (text: string) => {
+		const now = Date.now()
+		const last = lastScannedRef.current
+		if (last && last.text === text && now - last.at < 2000) return
+		lastScannedRef.current = { text, at: now }
+		const result = extractRoom(text)
+		if (!result) return
+		if (result.type === 'poker') {
+			navigate({ to: '/poker/$roomId', params: { roomId: result.roomId } })
+		} else {
+			navigate({ to: '/chat/$roomId', params: { roomId: result.roomId } })
+		}
+		setScanOpen(false)
 	}
 
 	const navigateToRoom = (roomId: string, type: RoomType) => {
@@ -149,6 +167,11 @@ function HomePage() {
 				</div>
 			</header>
 			<SettingsSheet open={settingsOpen} onOpenChange={setSettingsOpen} />
+			<ScanRoomSheet
+				open={scanOpen}
+				onOpenChange={setScanOpen}
+				onScanSuccess={handleScanSuccess}
+			/>
 
 			{/* 主要内容 */}
 			<main className="flex-1 px-4 py-6 sm:px-6">
@@ -184,8 +207,17 @@ function HomePage() {
 								onChange={(e) => setJoinInput(e.target.value)}
 								onKeyDown={handleJoinKeyDown}
 								placeholder="粘贴链接或输入房间号"
-								className="min-h-[44px] text-base"
+								className="min-h-[44px] flex-1 text-base"
 							/>
+							<Button
+								onClick={() => setScanOpen(true)}
+								variant="outline"
+								size="icon"
+								className="min-h-[44px] min-w-[44px] shrink-0"
+								aria-label="扫码加入"
+							>
+								<QrCode className="h-5 w-5" />
+							</Button>
 							<Button
 								onClick={handleJoin}
 								disabled={!joinInput.trim()}

@@ -71,6 +71,11 @@ interface UseYjsChatReturn {
 		requestId: string,
 		accept: boolean,
 	) => Promise<void>
+	/** 用已在用户手势中发起的 readText Promise 回复（供 iOS Safari） */
+	respondToClipboardRequestWithContent: (
+		requestId: string,
+		contentPromise: Promise<string>,
+	) => Promise<void>
 	/** 收到的剪切板内容（我请求后对方同意发来的） */
 	receivedClipboard: ReceivedClipboard | null
 	/** 消费并清除已展示的剪切板响应，并从 Yjs 删除 */

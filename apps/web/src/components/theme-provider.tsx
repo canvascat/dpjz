@@ -1,12 +1,8 @@
 'use client'
 
 import { createContext, useContext, useEffect, useState } from 'react'
-import {
-	getThemePreference,
-	initTheme,
-	setThemePreference,
-	type ThemePreference,
-} from '@/lib/theme'
+import type { ThemePreference } from '@/lib/theme'
+import { getThemePreference, initTheme, setThemePreference } from '@/lib/theme'
 
 const ThemeContext = createContext<{
 	theme: ThemePreference
