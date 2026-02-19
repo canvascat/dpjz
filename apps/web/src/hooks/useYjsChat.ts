@@ -456,6 +456,31 @@ export function useYjsChat(
 		[],
 	)
 
+	/** 用已在用户手势中发起的 readText() Promise 回复请求，供 iOS Safari 等需同调栈读剪切板的场景 */
+	const respondToClipboardRequestWithContent = useCallback(
+		async (requestId: string, contentPromise: Promise<string>) => {
+			const { doc, clipboardRequests, clipboardResponses } = yjsRef.current
+			if (!doc || !clipboardRequests || !clipboardResponses) return
+			const yMap = clipboardRequests.get(requestId) as
+				| Y.Map<string | number>
+				| undefined
+			if (!yMap) return
+			try {
+				const content = await contentPromise
+				doc.transact(() => {
+					clipboardResponses.set(requestId, content)
+					clipboardRequests.delete(requestId)
+				})
+			} catch {
+				doc.transact(() => {
+					clipboardRequests.delete(requestId)
+				})
+				throw new Error('CLIPBOARD_READ_FAILED')
+			}
+		},
+		[],
+	)
+
 	const consumeClipboardResponse = useCallback(() => {
 		const { doc, clipboardResponses } = yjsRef.current
 		const current = receivedClipboardRef.current
@@ -477,6 +502,7 @@ export function useYjsChat(
 		requestClipboard,
 		pendingClipboardRequests,
 		respondToClipboardRequest,
+		respondToClipboardRequestWithContent,
 		receivedClipboard,
 		consumeClipboardResponse,
 	}

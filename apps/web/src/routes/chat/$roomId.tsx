@@ -54,6 +54,7 @@ function ChatRoom() {
 		requestClipboard,
 		pendingClipboardRequests,
 		respondToClipboardRequest,
+		respondToClipboardRequestWithContent,
 		receivedClipboard,
 		consumeClipboardResponse,
 	} = useYjsChat(roomId, user)
@@ -159,11 +160,16 @@ function ChatRoom() {
 		}
 	}
 
-	const handleFillInput = () => {
-		if (receivedClipboard) {
-			setInput(receivedClipboard.content)
-			consumeClipboardResponse()
+	/** iOS Safari 需在用户点击的同一同步调栈中启动 readText，再传入 Promise */
+	const handleAcceptClipboard = (requestId: string) => {
+		if (typeof navigator.clipboard?.readText !== 'function') {
+			toast.error('无法读取剪切板')
+			return
 		}
+		const contentPromise = navigator.clipboard.readText()
+		respondToClipboardRequestWithContent(requestId, contentPromise).catch(
+			() => toast.error('无法读取剪切板'),
+		)
 	}
 
 	const handleCopyReceived = async () => {
@@ -360,10 +366,9 @@ function ChatRoom() {
 							拒绝
 						</Button>
 						<Button
-							onClick={() =>
-								pendingRequest &&
-								handleRespondClipboard(pendingRequest.requestId, true)
-							}
+							onClick={() => {
+								if (pendingRequest) handleAcceptClipboard(pendingRequest.requestId)
+							}}
 							className="w-full min-h-[44px]"
 						>
 							同意并发送
@@ -373,7 +378,7 @@ function ChatRoom() {
 							onClick={() => {
 								if (pendingRequest) {
 									addClipboardAutoAllow(roomId, pendingRequest.fromUserId)
-									handleRespondClipboard(pendingRequest.requestId, true)
+									handleAcceptClipboard(pendingRequest.requestId)
 								}
 							}}
 							className="w-full min-h-[44px]"
@@ -397,31 +402,21 @@ function ChatRoom() {
 							{receivedClipboard &&
 								`${receivedClipboard.fromNickname} 的剪切板`}
 						</SheetTitle>
-						<SheetDescription>可复制或填入输入框</SheetDescription>
+						<SheetDescription>可复制到剪切板</SheetDescription>
 					</SheetHeader>
-					<div className="mt-4 space-y-4 px-1">
+					<div className="space-y-4 px-5 pt-4 pb-4">
 						{receivedClipboard && (
-							<pre className="max-h-[40vh] overflow-auto rounded-lg bg-muted/60 p-3 text-sm whitespace-pre-wrap break-words">
+							<pre className="max-h-[40vh] overflow-auto overscroll-y-contain rounded-lg bg-muted/60 p-3 text-sm whitespace-pre-wrap break-words">
 								{receivedClipboard.content || '(空)'}
 							</pre>
 						)}
-						<div className="flex gap-2">
-							<Button
-								variant="outline"
-								className="min-h-[44px] flex-1"
-								onClick={handleCopyReceived}
-							>
-								复制
-							</Button>
-							<Button
-								className="min-h-[44px] flex-1"
-								onClick={() => {
-									handleFillInput()
-								}}
-							>
-								填入输入框
-							</Button>
-						</div>
+						<Button
+							variant="outline"
+							className="w-full min-h-[44px]"
+							onClick={handleCopyReceived}
+						>
+							复制
+						</Button>
 					</div>
 				</SheetContent>
 			</Sheet>
