@@ -41,6 +41,15 @@ export interface ReceivedClipboard {
 	fromNickname: string
 }
 
+/** 文件传输：发给我的 offer（待接受/拒绝） */
+export interface IncomingFileOffer {
+	sessionId: string
+	fromUserId: string
+	fromNickname: string
+	fileName: string
+	fileSize: number
+}
+
 interface UseYjsChatReturn {
 	messages: Array<ChatMessage>
 	sendMessage: (text: string) => void
@@ -48,6 +57,10 @@ interface UseYjsChatReturn {
 	peers: Array<PeerInfo>
 	peerCount: number
 	connected: boolean
+	/** 文档已就绪时可做 P2P 文件传输信令；为 null 时表示未就绪 */
+	docReady: boolean
+	/** 供 useFileTransfer 使用，docReady 为 true 时才有值 */
+	doc: Y.Doc | null
 	/** 请求读取某人的剪切板（toNickname 用于收到响应时展示） */
 	requestClipboard: (toUserId: string, toNickname: string) => void
 	/** 针对自己的待处理剪切板请求 */
@@ -79,6 +92,7 @@ export function useYjsChat(
 	>([])
 	const [receivedClipboard, setReceivedClipboard] =
 		useState<ReceivedClipboard | null>(null)
+	const [docReady, setDocReady] = useState(false)
 
 	// 用 ref 持有可变引用，避免 effect 依赖抖动
 	const localUserRef = useRef(localUser)
@@ -96,6 +110,7 @@ export function useYjsChat(
 			messagesArray: Y.Array<Y.Map<string | number>>
 			clipboardRequests: Y.Map<unknown>
 			clipboardResponses: Y.Map<unknown>
+			fileSignals: Y.Map<unknown>
 			webrtcProvider: WebrtcProvider
 			indexeddbProvider: IndexeddbPersistence
 		}>
@@ -111,6 +126,7 @@ export function useYjsChat(
 			'clipboardRequests',
 		)
 		const clipboardResponses = doc.getMap('clipboardResponses')
+		const fileSignals = doc.getMap<Y.Map<string | number>>('fileSignals')
 
 		const parseNotionConfig = (
 			raw: unknown,
@@ -247,13 +263,15 @@ export function useYjsChat(
 		const staleCleanupInterval = setInterval(cleanupStaleRequests, 30_000)
 		cleanupStaleRequests()
 
-		// 保存到 ref 供 sendMessage / clipboard 使用
+		// 保存到 ref 供 sendMessage / clipboard / fileTransfer 使用
 		yjsRef.current = {
 			doc,
 			messagesArray,
 			clipboardRequests: clipboardRequests as Y.Map<unknown>,
 			clipboardResponses: clipboardResponses as Y.Map<unknown>,
+			fileSignals: fileSignals as Y.Map<unknown>,
 		}
+		setDocReady(true)
 
 		// 异步初始化 providers
 		const initProviders = async () => {
@@ -315,6 +333,7 @@ export function useYjsChat(
 				webrtcProvider,
 				clipboardRequests: clipboardRequests as Y.Map<unknown>,
 				clipboardResponses: clipboardResponses as Y.Map<unknown>,
+				fileSignals: fileSignals as Y.Map<unknown>,
 			}
 
 			// IndexedDB 加载完成后也刷新一次
@@ -327,6 +346,7 @@ export function useYjsChat(
 
 		return () => {
 			disposed = true
+			setDocReady(false)
 			clearInterval(staleCleanupInterval)
 			messagesArray.unobserveDeep(observer)
 			clipboardRequests.unobserve(observerRequests)
@@ -452,6 +472,8 @@ export function useYjsChat(
 		peers,
 		peerCount: peers.length || 1,
 		connected,
+		docReady,
+		doc: docReady ? (yjsRef.current?.doc ?? null) : null,
 		requestClipboard,
 		pendingClipboardRequests,
 		respondToClipboardRequest,

@@ -29,6 +29,11 @@ import {
 	addClipboardAutoAllow,
 	isClipboardAutoAllow,
 } from '@/lib/clipboard-auto-allow'
+import {
+	formatFileSize,
+	MAX_FILE_SIZE,
+	useFileTransfer,
+} from '@/hooks/useFileTransfer'
 import { useLocalUser } from '@/hooks/useLocalUser'
 import { useRecentRooms } from '@/hooks/useRecentRooms'
 import { useYjsChat } from '@/hooks/useYjsChat'
@@ -43,17 +48,38 @@ function ChatRoom() {
 		peers,
 		peerCount,
 		connected,
+		docReady,
+		doc,
 		requestClipboard,
 		pendingClipboardRequests,
 		respondToClipboardRequest,
 		receivedClipboard,
 		consumeClipboardResponse,
 	} = useYjsChat(roomId, user)
+	const fileTransfer = useFileTransfer(
+		doc,
+		user.id,
+		user.nickname,
+		peers,
+	)
+	const {
+		incomingOffers,
+		sendProgress,
+		receiveProgress,
+		receivedFile,
+		sendFile,
+		acceptOffer,
+		rejectOffer,
+		clearReceivedFile,
+		cancelSend,
+	} = fileTransfer
 	const [input, setInput] = useState('')
 	const [selectedPeer, setSelectedPeer] = useState<PeerInfo | null>(null)
 	const [profileOpen, setProfileOpen] = useState(false)
 	const messagesEndRef = useRef<HTMLDivElement>(null)
 	const inputRef = useRef<HTMLInputElement>(null)
+	const fileInputRef = useRef<HTMLInputElement>(null)
+	const pendingFilePeerRef = useRef<PeerInfo | null>(null)
 
 	// 仅对未设为「不再询问」的请求弹窗；已信任的请求自动代为同意
 	const pendingRequestsToShow = pendingClipboardRequests.filter(
@@ -137,8 +163,47 @@ function ChatRoom() {
 		}
 	}
 
+	const handleSendFileClick = (peer: PeerInfo) => {
+		pendingFilePeerRef.current = peer
+		fileInputRef.current?.click()
+	}
+
+	const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		const peer = pendingFilePeerRef.current
+		const file = e.target.files?.[0]
+		e.target.value = ''
+		pendingFilePeerRef.current = null
+		if (!peer || !file) return
+		if (file.size > MAX_FILE_SIZE) {
+			toast.error(`文件大小超过 ${formatFileSize(MAX_FILE_SIZE)} 限制`)
+			return
+		}
+		sendFile(peer.userId, peer.nickname, file)
+		toast.success(`正在向 ${peer.nickname} 发送文件`)
+	}
+
+	const handleSaveReceivedFile = () => {
+		if (!receivedFile) return
+		const url = URL.createObjectURL(receivedFile.blob)
+		const a = document.createElement('a')
+		a.href = url
+		a.download = receivedFile.fileName
+		a.click()
+		URL.revokeObjectURL(url)
+		clearReceivedFile()
+		toast.success('已保存')
+	}
+
+	const incomingFileOffer = incomingOffers[0] ?? null
+
 	return (
 		<div className="flex h-dvh flex-col bg-background">
+			<input
+				ref={fileInputRef}
+				type="file"
+				className="hidden"
+				onChange={handleFileInputChange}
+			/>
 			{/* 顶部栏 */}
 			<header className="flex shrink-0 items-center gap-2 border-b px-3 py-2.5 sm:px-4">
 				<Link to="/">
@@ -236,6 +301,8 @@ function ChatRoom() {
 				targetPeer={selectedPeer}
 				onClose={() => setSelectedPeer(null)}
 				onRequestClipboard={handleRequestClipboard}
+				onSendFile={handleSendFileClick}
+				fileTransferReady={docReady}
 			/>
 
 			{/* 对方请求读取我的剪切板：同意/拒绝 */}
@@ -320,6 +387,113 @@ function ChatRoom() {
 								填入输入框
 							</Button>
 						</div>
+					</div>
+				</SheetContent>
+			</Sheet>
+
+			{/* 对方请求发送文件：接受/拒绝 */}
+			<Dialog open={!!incomingFileOffer}>
+				<DialogContent showCloseButton={false}>
+					<DialogHeader>
+						<DialogTitle>收到文件</DialogTitle>
+						<DialogDescription>
+							{incomingFileOffer &&
+								`${incomingFileOffer.fromNickname} 想发送 ${incomingFileOffer.fileName}（${formatFileSize(incomingFileOffer.fileSize)}），是否接受？`}
+						</DialogDescription>
+					</DialogHeader>
+					<DialogFooter showCloseButton={false} className="flex-col gap-2">
+						<Button
+							variant="outline"
+							className="w-full min-h-[44px]"
+							onClick={() =>
+								incomingFileOffer &&
+								rejectOffer(incomingFileOffer.sessionId)
+							}
+						>
+							拒绝
+						</Button>
+						<Button
+							className="w-full min-h-[44px]"
+							onClick={() =>
+								incomingFileOffer &&
+								acceptOffer(incomingFileOffer.sessionId)
+							}
+						>
+							接受
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
+
+			{/* 发送进度 */}
+			{sendProgress && (
+				<div className="fixed bottom-20 left-3 right-3 z-40 rounded-lg border bg-background p-3 shadow-lg sm:left-auto sm:right-4 sm:max-w-sm">
+					<div className="flex items-center justify-between gap-2 text-sm">
+						<span className="truncate">
+							{sendProgress.status === 'connecting' && '连接中…'}
+							{sendProgress.status === 'sending' &&
+								`发送给 ${sendProgress.toNickname} ${sendProgress.percent}%`}
+							{sendProgress.status === 'done' && `已发送给 ${sendProgress.toNickname}`}
+							{sendProgress.status === 'error' && '发送失败'}
+							{sendProgress.status === 'rejected' && '对方已拒绝'}
+						</span>
+						{(sendProgress.status === 'connecting' ||
+							sendProgress.status === 'sending') && (
+							<Button
+								variant="ghost"
+								size="sm"
+								onClick={() => cancelSend(sendProgress.sessionId)}
+							>
+								取消
+							</Button>
+						)}
+					</div>
+					{(sendProgress.status === 'sending' || sendProgress.status === 'done') && (
+						<div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
+							<div
+								className="h-full bg-primary transition-all"
+								style={{ width: `${sendProgress.percent}%` }}
+							/>
+						</div>
+					)}
+				</div>
+			)}
+
+			{/* 接收进度 */}
+			{receiveProgress && receiveProgress.status === 'receiving' && (
+				<div className="fixed bottom-20 left-3 right-3 z-40 rounded-lg border bg-background p-3 shadow-lg sm:left-auto sm:right-4 sm:max-w-sm">
+					<div className="text-sm">
+						{receiveProgress.fromNickname} 发送 {receiveProgress.fileName}：{receiveProgress.percent}%
+					</div>
+					<div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
+						<div
+							className="h-full bg-primary transition-all"
+							style={{ width: `${receiveProgress.percent}%` }}
+						/>
+					</div>
+				</div>
+			)}
+
+			{/* 收到的文件：保存 */}
+			<Sheet
+				open={!!receivedFile}
+				onOpenChange={(open) => !open && receivedFile && clearReceivedFile()}
+			>
+				<SheetContent side="bottom" className="rounded-t-2xl">
+					<SheetHeader className="text-left">
+						<SheetTitle>收到文件</SheetTitle>
+						<SheetDescription>
+							{receivedFile &&
+								`${receivedFile.fromNickname} 发送了 ${receivedFile.fileName}`}
+						</SheetDescription>
+					</SheetHeader>
+					<div className="mt-4 px-1">
+						<Button
+							className="w-full min-h-[44px]"
+							onClick={handleSaveReceivedFile}
+						>
+							保存到设备
+						</Button>
 					</div>
 				</SheetContent>
 			</Sheet>

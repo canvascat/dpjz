@@ -1,4 +1,4 @@
-import { Clipboard } from 'lucide-react'
+import { Clipboard, FileUp } from 'lucide-react'
 import type { PeerInfo } from '@/hooks/useYjsChat'
 import { UserAvatar } from '@/components/notion-style-avatar'
 import { Button } from '@/components/ui/button'
@@ -14,16 +14,27 @@ interface ChatPeerActionSheetProps {
 	targetPeer: PeerInfo | null
 	onClose: () => void
 	onRequestClipboard: (peer: PeerInfo) => void
+	onSendFile: (peer: PeerInfo) => void
+	/** 为 false 时禁用发送文件（文档未就绪） */
+	fileTransferReady?: boolean
 }
 
 export function ChatPeerActionSheet({
 	targetPeer,
 	onClose,
 	onRequestClipboard,
+	onSendFile,
+	fileTransferReady = true,
 }: ChatPeerActionSheetProps) {
 	const handleRequestClipboard = () => {
 		if (targetPeer) {
 			onRequestClipboard(targetPeer)
+			onClose()
+		}
+	}
+	const handleSendFile = () => {
+		if (targetPeer) {
+			onSendFile(targetPeer)
 			onClose()
 		}
 	}
@@ -58,6 +69,15 @@ export function ChatPeerActionSheet({
 					>
 						<Clipboard className="h-4 w-4 shrink-0" />
 						读取剪切板
+					</Button>
+					<Button
+						variant="outline"
+						className="w-full justify-start gap-3 min-h-[44px]"
+						onClick={handleSendFile}
+						disabled={!fileTransferReady}
+					>
+						<FileUp className="h-4 w-4 shrink-0" />
+						发送文件
 					</Button>
 				</div>
 			</SheetContent>
