@@ -286,8 +286,8 @@ function ChatRoom() {
 				<div ref={messagesEndRef} />
 			</div>
 
-			{/* 输入区域：移动端样式同桌面，点击用 window.prompt；桌面端内联输入 */}
-			<div className="shrink-0 border-t bg-background px-3 py-3 sm:px-4">
+			{/* 输入区域：移动端样式同桌面，点击用 window.prompt；桌面端内联输入；底部预留安全区 */}
+			<div className="shrink-0 border-t bg-background px-3 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-4">
 				{isMobile ? (
 					<div className="flex items-center gap-2">
 						<button
@@ -460,7 +460,7 @@ function ChatRoom() {
 
 			{/* 发送进度 */}
 			{sendProgress && (
-				<div className="fixed bottom-20 left-3 right-3 z-40 rounded-lg border bg-background p-3 shadow-lg sm:left-auto sm:right-4 sm:max-w-sm">
+				<div className="fixed left-3 right-3 z-40 rounded-lg border bg-background p-3 shadow-lg sm:left-auto sm:right-4 sm:max-w-sm bottom-[calc(5rem+env(safe-area-inset-bottom))]">
 					<div className="flex items-center justify-between gap-2 text-sm">
 						<span className="truncate">
 							{sendProgress.status === 'connecting' && '连接中…'}
@@ -496,7 +496,7 @@ function ChatRoom() {
 
 			{/* 接收进度 */}
 			{receiveProgress && receiveProgress.status === 'receiving' && (
-				<div className="fixed bottom-20 left-3 right-3 z-40 rounded-lg border bg-background p-3 shadow-lg sm:left-auto sm:right-4 sm:max-w-sm">
+				<div className="fixed left-3 right-3 z-40 rounded-lg border bg-background p-3 shadow-lg sm:left-auto sm:right-4 sm:max-w-sm bottom-[calc(5rem+env(safe-area-inset-bottom))]">
 					<div className="text-sm">
 						{receiveProgress.fromNickname} 发送 {receiveProgress.fileName}：
 						{receiveProgress.percent}%
