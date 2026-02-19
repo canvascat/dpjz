@@ -1,137 +1,141 @@
-# P2P 聊天
+# dpjz
 
-基于 Yjs + WebRTC 的 P2P 协作应用（聊天、扑克等），支持 PWA，可部署到 Cloudflare 免费服务。
+A P2P collaboration app built with **Yjs + WebRTC**: real-time chat, scorekeeping (poker-style), clipboard sharing, and file transfer—all without a backend for application data. Supports PWA and can be deployed on Cloudflare’s free tier.
 
-## 项目结构（pnpm workspace）
+## Features
+
+- **Chat rooms** – Create or join rooms by ID/link. Messages sync via Yjs over WebRTC; presence (peers) via awareness.
+- **Member bar & actions** – In chat, a member list (like the poker room). Tap a peer to:
+  - **Read clipboard** – Request the peer’s clipboard; they approve and the text is sent to you (shown in a sheet with copy / paste-into-input).
+  - **Send file** – P2P file transfer (up to 100MB). Offer/answer/ICE signaling over the same Yjs doc; file bytes over a dedicated WebRTC DataChannel.
+- **Poker (scorekeeping) rooms** – Members, balances, transfers, “tea” fee and cap, transaction list. All state in a shared Yjs doc.
+- **Profile** – Local nickname and avatar (text or Notion-style dice); stored in `localStorage`.
+- **PWA** – Installable; mobile-first, touch-friendly UI (Tailwind + shadcn/ui).
+
+Data is peer-to-peer (WebRTC) and persisted locally (IndexedDB). Only **signaling** (WebSocket) uses a server so peers can discover each other.
+
+## Project structure (pnpm workspace)
 
 ```
 ├── apps/
-│   ├── web/            # 前端（Vite + React + PWA）
-│   ├── signaling/      # 信令服务（Node.js + ws，本地/自托管）
-│   └── signaling-cf/   # 信令服务（Cloudflare Worker + Durable Object，见该目录 README）
+│   ├── web/            # Frontend (Vite + React + PWA)
+│   ├── signaling/      # Signaling server (Node.js + ws, local/self-hosted)
+│   └── signaling-cf/   # Signaling (Cloudflare Worker + Durable Object)
 ├── pnpm-workspace.yaml
-└── package.json        # 根脚本
+└── package.json
 ```
 
-## 环境要求
+## Requirements
 
-- Node.js 18+
-- pnpm（推荐与仓库内 `.node-version` 一致）
+- **Node.js** 18+
+- **pnpm** (recommended; version in `.node-version`)
 
-## 安装
+## Install
 
-在仓库根目录执行：
+From the repo root:
 
 ```bash
 pnpm install
 ```
 
-## 本地开发
+## Local development
 
-前端与信令需同时运行（前端通过 WebSocket 连接信令）。
+Run both the frontend and a signaling server (frontend connects via WebSocket).
 
-**方式一：两个终端**
+**Option A: Two terminals**
 
 ```bash
-# 终端 1：前端
+# Terminal 1: frontend
 pnpm dev
 
-# 终端 2：信令（Node 版，默认端口 4444）
+# Terminal 2: Node signaling (default port 4444)
 pnpm signaling:start
 ```
 
-**方式二：信令用 Cloudflare 本地 Worker**
+**Option B: Cloudflare Worker signaling locally**
 
 ```bash
-# 终端 1：前端（需指定信令地址，否则默认 localhost:4444）
+# Terminal 1: frontend (set signaling URL if not using default)
 VITE_SIGNALING_URL=ws://localhost:8787 pnpm dev
 
-# 终端 2：信令 Worker 本地调试
+# Terminal 2: signaling-cf dev
 pnpm --filter signaling-cf dev
 ```
 
-浏览器访问前端开发地址（通常 `http://localhost:5173`）。
+Open the dev URL (e.g. `http://localhost:5173`).
 
-## 构建
+## Build
 
 ```bash
-# 仅构建前端
+# Frontend only
 pnpm build
 
-# 仅构建信令（Node 版，产出 dist/index.mjs）
+# Node signaling only (output: dist/index.mjs)
 pnpm --filter signaling build
 ```
 
-## 测试与代码质量
+## Test and lint
 
 ```bash
-pnpm test      # 前端单元测试
-pnpm lint      # 前端 ESLint
-pnpm format    # Prettier 检查
-pnpm check     # Prettier 写回 + ESLint 修复
+pnpm test      # Frontend unit tests
+pnpm lint      # ESLint
+pnpm format    # Prettier check
+pnpm check     # Prettier write + ESLint fix
 ```
 
-## 部署到 Cloudflare（免费）
+## Deploy (Cloudflare)
 
-### 1. 信令服务（Worker + Durable Object）
+### 1. Signaling (Worker + Durable Object)
 
-信令部署后，前端需使用其 **wss** 地址作为 `VITE_SIGNALING_URL`。
+After deploying signaling, set the frontend’s `VITE_SIGNALING_URL` to the **wss** URL of that Worker.
 
-1. 登录 Cloudflare：
-   ```bash
-   cd apps/signaling-cf && pnpm exec wrangler login
-   ```
-   或设置环境变量 `CLOUDFLARE_API_TOKEN`。
-
-2. 部署：
+1. Log in: `cd apps/signaling-cf && pnpm exec wrangler login` (or set `CLOUDFLARE_API_TOKEN`).
+2. Deploy:
    ```bash
    pnpm deploy:signaling
    ```
+3. Note the Worker URL (e.g. `https://dpjz-signaling.<subdomain>.workers.dev`). Use **wss** for the frontend, e.g. `wss://dpjz-signaling.<subdomain>.workers.dev`.
 
-3. 记下 Worker 地址，例如：`https://dpjz-signaling.<你的子域>.workers.dev`  
-   前端生产环境信令 URL 为：**wss** 同主机，如 `wss://dpjz-signaling.<子域>.workers.dev`。
+### 2. Frontend (Pages)
 
-### 2. 前端（Pages）
+**Option A: Git integration**
 
-**方式 A：Git 关联（推荐）**
+1. Cloudflare Dashboard → Pages → Create project → Connect Git.
+2. Root: repo root. Build: `pnpm install && pnpm --filter web build`. Output: `apps/web/dist`.
+3. Add env var: `VITE_SIGNALING_URL` = `wss://dpjz-signaling.<subdomain>.workers.dev`.
 
-1. Cloudflare Dashboard → Pages → 创建项目 → 连接 Git。
-2. 根目录：仓库根；构建命令：`pnpm install && pnpm --filter web build`；输出目录：`apps/web/dist`。
-3. 在 Pages 的 **构建配置** 中新增环境变量：
-   - `VITE_SIGNALING_URL` = `wss://dpjz-signaling.<子域>.workers.dev`（替换为你的信令 Worker 地址，协议改为 wss）。
+**Option B: Manual upload**
 
-**方式 B：本地上传**
-
-1. 先部署信令，得到 wss 地址。
-2. 在本地设置该地址并构建、上传：
+1. Deploy signaling and get its wss URL.
+2. Build and deploy:
    ```bash
-   VITE_SIGNALING_URL=wss://dpjz-signaling.<子域>.workers.dev pnpm build
+   VITE_SIGNALING_URL=wss://dpjz-signaling.<subdomain>.workers.dev pnpm build
    pnpm deploy:web
    ```
-   `deploy:web` 会执行构建并调用 `wrangler pages deploy`；需已存在同名 Pages 项目（默认 `--project-name=dpjz`，可在根目录 `package.json` 中修改）。
+   `deploy:web` runs the web build and `wrangler pages deploy` (default project name: `dpjz`, configurable in root `package.json`).
 
-## 环境变量
+## Environment variables
 
-| 变量 | 作用 | 使用位置 |
-|------|------|----------|
-| `VITE_SIGNALING_URL` | 信令 WebSocket 地址（ws/wss） | 前端构建时注入，未设置时默认 `ws://localhost:4444` |
-| `PORT` | Node 信令服务端口 | `apps/signaling`，默认 4444 |
-| `CLOUDFLARE_API_TOKEN` | Cloudflare API 令牌 | 非交互环境部署 Worker/Pages 时使用 |
+| Variable | Purpose | Where |
+|----------|---------|--------|
+| `VITE_SIGNALING_URL` | Signaling WebSocket (ws/wss) | Injected at frontend build time; default `ws://localhost:4444` |
+| `PORT` | Node signaling server port | `apps/signaling`, default 4444 |
+| `CLOUDFLARE_API_TOKEN` | Cloudflare API token | Deploy without interactive login |
 
-## 技术栈
+## Tech stack
 
-- **前端**：React 19、Vite、TanStack Router、TanStack Query、Tailwind CSS、shadcn/ui、Yjs（y-webrtc、y-indexeddb）
-- **信令（Node）**：Node.js、ws、lib0
-- **信令（Cloudflare）**：Workers、Durable Objects（Hibernation API）
-- **PWA**：vite-plugin-pwa（Workbox）
+- **Frontend**: React 19, Vite, TanStack Router, TanStack Query, Tailwind CSS, shadcn/ui, Yjs (y-webrtc, y-indexeddb)
+- **Signaling (Node)**: Node.js, ws, lib0
+- **Signaling (Cloudflare)**: Workers, Durable Objects (Hibernation API)
+- **PWA**: vite-plugin-pwa (Workbox)
 
-### 前端相关
+### Frontend notes
 
-- 路由：TanStack Router，文件位于 `apps/web/src/routes`。
-- 样式：Tailwind，组件风格见 shadcn/ui；新增组件可用 `pnpm dlx shadcn@latest add <组件名>`（在 `apps/web` 下执行）。
-- 设计：移动端优先、触控友好，目标为 PWA。
+- Routes: TanStack Router file-based under `apps/web/src/routes`.
+- Styling: Tailwind; UI patterns follow shadcn/ui. Add components with `pnpm dlx shadcn@latest add <name>` inside `apps/web`.
+- Layout: Mobile-first, touch-friendly, PWA-oriented.
 
-## 其他说明
+## Notes
 
-- 以 `demo.` 开头的文件为示例，可按需删除。
-- 更多 TanStack 用法见 [TanStack 文档](https://tanstack.com)。
+- Files prefixed with `demo.` are examples and can be removed.
+- [TanStack docs](https://tanstack.com) for Router/Query.
