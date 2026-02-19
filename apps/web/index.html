@@ -12,6 +12,15 @@
 		<title>P2P 聊天</title>
 	</head>
 	<body class="overscroll-none">
+		<script>
+			(function () {
+				var t = localStorage.getItem('dpjz-theme')
+				var dark =
+					t === 'dark' ||
+					(t !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+				document.documentElement.classList.toggle('dark', !!dark)
+			})()
+		</script>
 		<div id="root"></div>
 		<script type="module" src="/src/main.tsx"></script>
 	</body>

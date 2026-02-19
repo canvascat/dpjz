@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { Calculator, Clock, MessageCircle, Trash2 } from 'lucide-react'
+import { Calculator, Clock, MessageCircle, Settings, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import type { RoomType } from '@/lib/user'
 
 import { ProfileSheet } from '@/components/profile-sheet'
+import { SettingsSheet } from '@/components/settings-sheet'
 import { UserAvatar } from '@/components/notion-style-avatar'
 import { Button } from '@/components/ui/button'
 import { Card, CardDescription, CardTitle } from '@/components/ui/card'
@@ -74,6 +75,7 @@ function HomePage() {
 	const { user } = useLocalUser()
 	const { rooms, remove: removeRoom } = useRecentRooms()
 	const [joinInput, setJoinInput] = useState('')
+	const [settingsOpen, setSettingsOpen] = useState(false)
 
 	const handleCreate = (type: RoomType) => {
 		const roomId = generateRoomId()
@@ -109,32 +111,44 @@ function HomePage() {
 
 	return (
 		<div className="flex min-h-dvh flex-col bg-background">
-			{/* 顶部个人信息 */}
+			{/* 顶部个人信息 + 设置 */}
 			<header className="shrink-0 border-b px-4 py-4 sm:px-6">
-				<div className="mx-auto max-w-lg">
-					<ProfileSheet
-						trigger={
-							<button className="flex w-full items-center gap-3 rounded-xl p-2 text-left transition-colors hover:bg-muted/50 active:bg-muted">
-								<UserAvatar
-									userId={user.id}
-									name={user.nickname}
-									avatarColor={user.avatarColor}
-									avatarType={user.avatarType}
-									notionConfig={user.notionAvatarConfig}
-									size="lg"
-									className="h-12 w-12 text-lg"
-								/>
-								<div className="min-w-0 flex-1">
-									<p className="truncate font-medium">{user.nickname}</p>
-									<p className="text-xs text-muted-foreground">
-										点击编辑个人信息
-									</p>
-								</div>
-							</button>
-						}
-					/>
+				<div className="mx-auto flex max-w-lg items-center gap-2">
+					<div className="min-w-0 flex-1">
+						<ProfileSheet
+							trigger={
+								<button className="flex w-full items-center gap-3 rounded-xl p-2 text-left transition-colors hover:bg-muted/50 active:bg-muted">
+									<UserAvatar
+										userId={user.id}
+										name={user.nickname}
+										avatarColor={user.avatarColor}
+										avatarType={user.avatarType}
+										notionConfig={user.notionAvatarConfig}
+										size="lg"
+										className="h-12 w-12 text-lg"
+									/>
+									<div className="min-w-0 flex-1">
+										<p className="truncate font-medium">{user.nickname}</p>
+										<p className="text-xs text-muted-foreground">
+											点击编辑个人信息
+										</p>
+									</div>
+								</button>
+							}
+						/>
+					</div>
+					<Button
+						variant="ghost"
+						size="icon"
+						className="h-10 w-10 shrink-0"
+						onClick={() => setSettingsOpen(true)}
+						aria-label="设置"
+					>
+						<Settings className="h-5 w-5" />
+					</Button>
 				</div>
 			</header>
+			<SettingsSheet open={settingsOpen} onOpenChange={setSettingsOpen} />
 
 			{/* 主要内容 */}
 			<main className="flex-1 px-4 py-6 sm:px-6">
