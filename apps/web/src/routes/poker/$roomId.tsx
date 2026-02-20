@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import type { PokerMember } from '@/hooks/useYjsPoker'
 
 import { PokerMemberBar } from '@/components/poker-member-bar'
+import { PokerSettleSheet } from '@/components/poker-settle-sheet'
 import { PokerTeaSheet } from '@/components/poker-tea-sheet'
 import { PokerTransferSheet } from '@/components/poker-transfer-sheet'
 import { PokerTransactions } from '@/components/poker-transactions'
@@ -35,6 +36,8 @@ function PokerRoom() {
 	const [transferTarget, setTransferTarget] = useState<PokerMember | null>(null)
 	// 茶位费弹窗
 	const [teaOpen, setTeaOpen] = useState(false)
+	// 结算弹窗
+	const [settleOpen, setSettleOpen] = useState(false)
 	// 个人信息抽屉（成员栏点击自己时打开）
 	const [profileOpen, setProfileOpen] = useState(false)
 
@@ -102,6 +105,17 @@ function PokerRoom() {
 				/>
 			</div>
 
+			{/* 底部操作栏 */}
+			<footer className="flex shrink-0 items-center justify-center border-t bg-background px-4 py-3 pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+				<Button
+					variant="ghost"
+					className="min-h-[44px] min-w-[44px]"
+					onClick={() => setSettleOpen(true)}
+				>
+					结算
+				</Button>
+			</footer>
+
 			{/* 转分 Sheet */}
 			<PokerTransferSheet
 				target={transferTarget}
@@ -129,6 +143,15 @@ function PokerRoom() {
 					setTeaCap(cap)
 				}}
 				onClose={() => setTeaOpen(false)}
+			/>
+
+			{/* 结算 Sheet */}
+			<PokerSettleSheet
+				open={settleOpen}
+				members={members}
+				balances={balances}
+				transactions={transactions}
+				onClose={() => setSettleOpen(false)}
 			/>
 		</div>
 	)
