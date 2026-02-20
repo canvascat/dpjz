@@ -139,12 +139,12 @@ function HomePage() {
 		lastScannedRef.current = { text, at: now }
 		const result = extractRoom(text)
 		if (!result) return
+		setScanOpen(false)
 		if (result.type === 'poker') {
 			navigate({ to: '/poker/$roomId', params: { roomId: result.roomId } })
 		} else {
 			navigate({ to: '/chat/$roomId', params: { roomId: result.roomId } })
 		}
-		setScanOpen(false)
 	}
 
 	const navigateToRoom = (roomId: string, type: RoomType) => {
@@ -321,11 +321,6 @@ function HomePage() {
 					</div>
 				)}
 			</main>
-
-			{/* 底部说明 */}
-			<footer className="shrink-0 border-t pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] text-center text-xs text-muted-foreground">
-				P2P 模式 · 数据通过 WebRTC 直接传输 · 本地 IndexedDB 持久化
-			</footer>
 		</div>
 	)
 }
