@@ -2,6 +2,7 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { Calculator, Clock, MessageCircle, QrCode, Settings, Trash2 } from 'lucide-react'
 import { useRef, useState } from 'react'
+import { toast } from 'sonner'
 import type { RoomType } from '@/lib/user'
 
 import { ProfileSheet } from '@/components/profile-sheet'
@@ -79,6 +80,7 @@ function HomePage() {
 	const [joinInput, setJoinInput] = useState('')
 	const [settingsOpen, setSettingsOpen] = useState(false)
 	const [scanOpen, setScanOpen] = useState(false)
+	const [scanPending, setScanPending] = useState(false) // 正在请求相机权限，未同意前不打开抽屉
 	const lastScannedRef = useRef<{ text: string; at: number } | null>(null)
 
 	const handleCreate = (type: RoomType) => {
@@ -103,6 +105,31 @@ function HomePage() {
 
 	const handleJoinKeyDown = (e: React.KeyboardEvent) => {
 		if (e.key === 'Enter') handleJoin()
+	}
+
+	const handleScanClick = async () => {
+		if (!navigator.mediaDevices?.getUserMedia) {
+			toast.error('当前环境不支持相机')
+			return
+		}
+		setScanPending(true)
+		try {
+			const stream = await navigator.mediaDevices.getUserMedia({
+				video: { facingMode: 'environment' },
+			})
+			stream.getTracks().forEach((t) => t.stop())
+			// 仅用户同意权限后再打开扫码抽屉
+			setScanOpen(true)
+		} catch (e) {
+			const msg = e instanceof Error ? e.message : String(e)
+			const text =
+				msg.includes('NotAllowedError') || msg.includes('Permission')
+					? '需要相机权限才能扫码'
+					: '无法启动相机'
+			toast.error(text)
+		} finally {
+			setScanPending(false)
+		}
 	}
 
 	const handleScanSuccess = (text: string) => {
@@ -210,13 +237,18 @@ function HomePage() {
 									className="min-h-[44px] flex-1 text-base"
 								/>
 								<Button
-									onClick={() => setScanOpen(true)}
+									onClick={handleScanClick}
+									disabled={scanPending}
 									variant="outline"
 									size="icon"
 									className="min-h-[44px] min-w-[44px] shrink-0"
 									aria-label="扫码加入"
 								>
-									<QrCode className="h-5 w-5" />
+									{scanPending ? (
+										<span className="size-5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+									) : (
+										<QrCode className="h-5 w-5" />
+									)}
 								</Button>
 								<Button
 									onClick={handleJoin}
