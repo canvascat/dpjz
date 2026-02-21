@@ -6,7 +6,7 @@ import type { WebrtcProvider } from 'y-webrtc'
 
 import type { LocalUser } from '@/lib/user'
 import type { NotionAvatarConfig } from '@/lib/notion-avatar'
-import { TEA_CAP } from '@/lib/constants'
+import { getSignalingUrls, TEA_CAP } from '@/lib/constants'
 
 // ─── 数据类型 ───────────────────────────────────────────
 
@@ -244,7 +244,7 @@ export function useYjsPoker(
 				doc,
 			)
 			const webrtcProvider = new WebrtcProvider(`dpjz-poker-${roomId}`, doc, {
-				signaling: [import.meta.env.VITE_SIGNALING_URL],
+				signaling: getSignalingUrls(),
 			})
 
 			const user = localUserRef.current

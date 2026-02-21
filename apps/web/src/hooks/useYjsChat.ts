@@ -4,6 +4,7 @@ import * as Y from 'yjs'
 import type { IndexeddbPersistence } from 'y-indexeddb'
 import type { WebrtcProvider } from 'y-webrtc'
 
+import { getSignalingUrls } from '@/lib/constants'
 import type { LocalUser } from '@/lib/user'
 import type { NotionAvatarConfig } from '@/lib/notion-avatar'
 
@@ -294,7 +295,7 @@ export function useYjsChat(
 			)
 
 			const webrtcProvider = new WebrtcProvider(`dpjz-chat-${roomId}`, doc, {
-				signaling: [import.meta.env.VITE_SIGNALING_URL],
+				signaling: getSignalingUrls(),
 			})
 
 			// 设置 awareness
