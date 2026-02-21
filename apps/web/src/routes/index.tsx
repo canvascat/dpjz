@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { Calculator, Clock, MessageCircle, QrCode, Settings, Trash2 } from 'lucide-react'
-import { useRef, useState } from 'react'
+import { Calculator, Clock, MessageCircle, QrCode, Settings } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import type { RoomType } from '@/lib/user'
 
@@ -9,10 +9,9 @@ import { ProfileSheet } from '@/components/profile-sheet'
 import { ScanRoomSheet } from '@/components/scan-room-sheet'
 import { SettingsSheet } from '@/components/settings-sheet'
 import { UserAvatar } from '@/components/notion-style-avatar'
+import { RecentRoomList } from '@/components/recent-room-list'
 import { Button } from '@/components/ui/button'
-import { Card, CardDescription, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import { useLocalUser } from '@/hooks/useLocalUser'
 import { useRecentRooms } from '@/hooks/useRecentRooms'
@@ -47,32 +46,6 @@ function extractRoom(input: string): { roomId: string; type: RoomType } | null {
 	return { roomId: trimmed, type: 'chat' }
 }
 
-function formatTime(ts: number): string {
-	const now = Date.now()
-	const diff = now - ts
-	if (diff < 60_000) return '刚刚'
-	if (diff < 3600_000) return `${Math.floor(diff / 60_000)} 分钟前`
-	if (diff < 86400_000) return `${Math.floor(diff / 3600_000)} 小时前`
-	const d = new Date(ts)
-	return `${d.getMonth() + 1}/${d.getDate()}`
-}
-
-const ROOM_TYPE_META: Record<
-	RoomType,
-	{ icon: typeof MessageCircle; label: string; color: string }
-> = {
-	chat: {
-		icon: MessageCircle,
-		label: '聊天室',
-		color: 'bg-blue-500/10 text-blue-600',
-	},
-	poker: {
-		icon: Calculator,
-		label: '记账房',
-		color: 'bg-amber-500/10 text-amber-600',
-	},
-}
-
 function HomePage() {
 	const navigate = useNavigate()
 	const { user } = useLocalUser()
@@ -82,6 +55,25 @@ function HomePage() {
 	const [scanOpen, setScanOpen] = useState(false)
 	const [scanPending, setScanPending] = useState(false) // 正在请求相机权限，未同意前不打开抽屉
 	const lastScannedRef = useRef<{ text: string; at: number } | null>(null)
+	const roomListContainerRef = useRef<HTMLDivElement>(null)
+	const [visibleRoomCount, setVisibleRoomCount] = useState(4)
+
+	// 根据剩余高度计算可展示的房间数量
+	useEffect(() => {
+		const el = roomListContainerRef.current
+		if (!el) return
+		const CARD_HEIGHT = 72
+		const MORE_BUTTON_HEIGHT = 52
+		const update = () => {
+			const h = el.clientHeight
+			const n = Math.max(1, Math.floor((h - MORE_BUTTON_HEIGHT) / CARD_HEIGHT))
+			setVisibleRoomCount(n)
+		}
+		update()
+		const observer = new ResizeObserver(update)
+		observer.observe(el)
+		return () => observer.disconnect()
+	}, [])
 
 	const handleCreate = (type: RoomType) => {
 		const roomId = generateRoomId()
@@ -263,7 +255,7 @@ function HomePage() {
 					</div>
 				</div>
 
-				{/* 最近房间：仅此区域可滚动，左右边距与上方一致 */}
+				{/* 最近房间：根据剩余高度展示若干条，超出显示「更多房间」 */}
 				{rooms.length > 0 && (
 					<div className="flex min-h-0 flex-1 flex-col px-4 sm:px-6">
 						<Separator className="shrink-0" />
@@ -271,53 +263,20 @@ function HomePage() {
 							<Clock className="h-4 w-4" />
 							<span>最近房间</span>
 						</div>
-						<ScrollArea className="min-h-0 flex-1 w-full">
-							<div className="mx-auto max-w-lg space-y-2.5 pb-2">
-								{rooms.map((room) => {
-									const type: RoomType = room.type || 'chat'
-									const meta = ROOM_TYPE_META[type]
-									const Icon = meta.icon
-
-									return (
-										<Card
-											key={room.id}
-											className="flex cursor-pointer flex-row items-center gap-3 rounded-xl border p-3 py-3 shadow-none transition-colors hover:bg-muted/50 active:bg-muted"
-											onClick={() => navigateToRoom(room.id, type)}
-										>
-											<div
-												className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${meta.color}`}
-											>
-												<Icon className="h-5 w-5" />
-											</div>
-											<div className="min-w-0 flex-1">
-												<div className="flex items-center gap-2">
-													<CardTitle className="truncate text-sm">
-														{room.id}
-													</CardTitle>
-													<span className="shrink-0 rounded-full bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
-														{meta.label}
-													</span>
-												</div>
-												<CardDescription className="text-xs">
-													{formatTime(room.lastVisited)}
-												</CardDescription>
-											</div>
-											<Button
-												variant="ghost"
-												size="icon"
-												className="h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive"
-												onClick={(e) => {
-													e.stopPropagation()
-													removeRoom(room.id)
-												}}
-											>
-												<Trash2 className="h-4 w-4" />
-											</Button>
-										</Card>
-									)
-								})}
+						<div
+							ref={roomListContainerRef}
+							className="min-h-0 flex-1 overflow-hidden"
+						>
+							<div className="mx-auto max-w-lg pb-2">
+								<RecentRoomList
+									rooms={rooms}
+									onRoomClick={navigateToRoom}
+									onRemoveRoom={removeRoom}
+									maxVisible={visibleRoomCount}
+									onMoreClick={() => navigate({ to: '/rooms' })}
+								/>
 							</div>
-						</ScrollArea>
+						</div>
 					</div>
 				)}
 			</main>
