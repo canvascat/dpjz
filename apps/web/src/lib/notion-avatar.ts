@@ -79,10 +79,9 @@ const partModules = import.meta.glob<string>(
 	},
 )
 
+// path 格式为 ./type/index.svg（如 ./face/0.svg）
 const avatars = Object.entries(partModules).map(([path, raw]) => {
-	const parts = path.split('/')
-	const type = parts[parts.length - 2]
-	const index = parts[parts.length - 1].replace(/\.svg$/, '')
+	const [type, index] = path.slice(2, -4).split('/')
 	return { type, index, raw }
 })
 
