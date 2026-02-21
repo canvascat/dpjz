@@ -67,3 +67,30 @@ export const NOTION_AVATAR_LAYER_ORDER: Array<NotionAvatarPart> = [
 	'eyebrows',
 	'hair',
 ]
+
+
+const partModules = import.meta.glob<string>(
+	'./**/*.svg',
+	{
+		eager: true,
+		query: '?raw',
+		import: 'default',
+		base: '../assets/notion-avatar',
+	},
+)
+
+const avatars = Object.entries(partModules).map(([path, raw]) => {
+	const parts = path.split('/')
+	const type = parts[parts.length - 2]
+	const index = parts[parts.length - 1].replace(/\.svg$/, '')
+	return { type, index, raw }
+})
+
+export const AVATAR_MAP = avatars.reduce(
+	(map, { type, index, raw }) => {
+		;(map[type as NotionAvatarPart] ??= [])[+index] = raw
+		return map
+	},
+	Object.create(null) as Partial<Record<NotionAvatarPart, Array<string>>>,
+)
+ 

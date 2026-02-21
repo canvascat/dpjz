@@ -1,9 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import type { NotionAvatarConfig, NotionAvatarPart } from '@/lib/notion-avatar'
+import { useEffect, useMemo, useState } from 'react'
+import type { NotionAvatarConfig } from '@/lib/notion-avatar'
 import { cn } from '@/lib/utils'
 import {
+	AVATAR_MAP,
 	NOTION_AVATAR_LAYER_ORDER,
 	getNotionAvatarConfig,
 } from '@/lib/notion-avatar'
@@ -31,26 +32,18 @@ const sizeTextClasses = {
 	lg: 'text-sm',
 }
 
-/** 与 notion-avatar AvatarEditor 一致：使用 preview 目录，文件名为数字 */
-function partUrl(part: NotionAvatarPart, index: number): string {
-	return `/avatar/preview/${part}/${index}.svg`
-}
-
 /**
- * 与 notion-avatar generatePreview 完全一致：按 part 顺序拉取 preview SVG，去外层 <svg>，包成 <g>，再拼成根 <svg viewBox="0 0 1080 1080">。
+ * 同步拼接头像 SVG：从 AVATAR_MAP 读 part 内容，去外层 <svg>，包成 <g>，再拼成根 <svg viewBox="0 0 1080 1080">。
  * @see https://github.com/Mayandev/notion-avatar (AvatarEditor generatePreview)
  */
-async function generatePreview(
+function generatePreview(
 	config: NotionAvatarConfig,
 	flipped = false,
-): Promise<string> {
+): string {
 	const parts = NOTION_AVATAR_LAYER_ORDER
-	const groups = await Promise.all(
-		parts.map(async (type) => {
-			const url = partUrl(type, config[type])
-			const res = await fetch(url)
-			if (!res.ok) throw new Error(url)
-			const svgRaw = await res.text()
+	const groups = parts.map((type) => {
+			const svgRaw = AVATAR_MAP[type]?.[config[type]] ?? ''
+			if (!svgRaw) throw new Error(`Avatar part ${type} index ${config[type]} not found`)
 			// 与官方一致：去掉外层 <svg> 和 </svg>，只保留内部内容
 			const inner = svgRaw
 				.replace(/<svg[\s\S]*?>/i, '')
@@ -61,8 +54,7 @@ async function generatePreview(
 				? ' transform="scale(-1,1) translate(-1080, 0)"'
 				: ''
 			return `\n<g id="notion-avatar-${type}"${faceFill}${flipTransform}>\n${inner}\n</g>\n`
-		}),
-	)
+		})
 	const SVGFilter = ''
 	const previewSvg =
 		`<svg viewBox="0 0 1080 1080" fill="none" xmlns="http://www.w3.org/2000/svg">${SVGFilter}<g id="notion-avatar">${groups.join('\n\n')}</g></svg>`
@@ -79,40 +71,33 @@ export function NotionStyleAvatar({
 	onError,
 }: NotionStyleAvatarProps) {
 	const [failed, setFailed] = useState(false)
-	const [previewSvg, setPreviewSvg] = useState<string | null>(null)
 	const config = configOverride ?? getNotionAvatarConfig(userId)
 
-	useEffect(() => {
-		let cancelled = false
-		generatePreview(config, false)
-			.then((svg) => {
-				if (!cancelled) setPreviewSvg(svg)
-			})
-			.catch(() => {
-				if (!cancelled) {
-					setFailed(true)
-					onError?.()
-				}
-			})
-		return () => {
-			cancelled = true
+	const previewSvg = useMemo(() => {
+		if (failed) return null
+		try {
+			return generatePreview(config, false)
+		} catch {
+			return null
 		}
-	}, [JSON.stringify(config), onError])
+	}, [
+		config.face,
+		config.nose,
+		config.mouth,
+		config.eyes,
+		config.eyebrows,
+		config.hair,
+		failed,
+	])
 
-	if (failed) return null
+	useEffect(() => {
+		if (previewSvg === null && !failed) {
+			setFailed(true)
+			onError?.()
+		}
+	}, [previewSvg, failed, onError])
 
-	if (previewSvg === null) {
-		return (
-			<div
-				className={cn(
-					'shrink-0 animate-pulse rounded-full bg-muted',
-					sizeClasses[size],
-					className,
-				)}
-				aria-hidden
-			/>
-		)
-	}
+	if (failed || previewSvg === null) return null
 
 	// 让注入的根 <svg> 填满容器，与官方预览一致缩放
 	const svgWithSize = previewSvg.replace(
