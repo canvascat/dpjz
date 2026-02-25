@@ -54,7 +54,7 @@ export function RecentRoomList({
 	return (
 		<div className="space-y-2.5">
 			{displayRooms.map((room) => {
-				const type: RoomType = room.type || 'chat'
+				const type: RoomType = room.type
 				const meta = ROOM_TYPE_META[type]
 				const Icon = meta.icon
 
@@ -71,9 +71,7 @@ export function RecentRoomList({
 						</div>
 						<div className="min-w-0 flex-1">
 							<div className="flex items-center gap-2">
-								<CardTitle className="truncate text-sm">
-									{room.id}
-								</CardTitle>
+								<CardTitle className="truncate text-sm">{room.id}</CardTitle>
 								<span className="shrink-0 rounded-full bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
 									{meta.label}
 								</span>
@@ -97,11 +95,7 @@ export function RecentRoomList({
 				)
 			})}
 			{showMore && (
-				<Button
-					variant="outline"
-					className="w-full"
-					onClick={onMoreClick}
-				>
+				<Button variant="outline" className="w-full" onClick={onMoreClick}>
 					更多房间
 				</Button>
 			)}
