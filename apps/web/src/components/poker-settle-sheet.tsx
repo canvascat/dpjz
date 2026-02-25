@@ -43,7 +43,10 @@ function computeTeaSettleRows(
 		if (cur) {
 			cur.amount += t.teaAmount
 		} else {
-			byFrom.set(t.fromUserId, { nickname: t.fromNickname, amount: t.teaAmount })
+			byFrom.set(t.fromUserId, {
+				nickname: t.fromNickname,
+				amount: t.teaAmount,
+			})
 		}
 	}
 	return Array.from(byFrom.entries())

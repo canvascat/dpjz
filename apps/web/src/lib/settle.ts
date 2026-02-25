@@ -15,8 +15,8 @@ export interface SettleItem {
 export function computeSettlePlan(
 	balances: Balances,
 	members: Array<PokerMember>,
-): SettleItem[] {
-	const result: SettleItem[] = []
+): Array<SettleItem> {
+	const result: Array<SettleItem> = []
 	const userIdToMember = new Map(members.map((m) => [m.userId, m]))
 
 	// 只考虑成员，排除 tea

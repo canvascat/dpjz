@@ -33,7 +33,7 @@ export function getDefaultSignalingUrl(): string {
 /**
  * 当前使用的信令地址：有自定义则用自定义，否则用环境变量 VITE_SIGNALING_URL。返回数组供 WebrtcProvider 使用。
  */
-export function getSignalingUrls(): string[] {
+export function getSignalingUrls(): Array<string> {
 	const custom = getCustomSignalingUrl()
 	if (custom) return [custom]
 	const env = getDefaultSignalingUrl()

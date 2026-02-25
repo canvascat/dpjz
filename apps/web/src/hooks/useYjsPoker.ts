@@ -6,7 +6,7 @@ import type { WebrtcProvider } from 'y-webrtc'
 
 import type { LocalUser } from '@/lib/user'
 import type { NotionAvatarConfig } from '@/lib/notion-avatar'
-import { getSignalingUrls, TEA_CAP } from '@/lib/constants'
+import { TEA_CAP, getSignalingUrls } from '@/lib/constants'
 
 // ─── 数据类型 ───────────────────────────────────────────
 

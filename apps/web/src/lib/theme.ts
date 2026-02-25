@@ -6,7 +6,8 @@ export function getThemePreference(): ThemePreference {
 	if (typeof document === 'undefined') return 'system'
 	try {
 		const stored = localStorage.getItem(STORAGE_KEY) as ThemePreference | null
-		if (stored === 'light' || stored === 'dark' || stored === 'system') return stored
+		if (stored === 'light' || stored === 'dark' || stored === 'system')
+			return stored
 	} catch {
 		// ignore
 	}
@@ -51,8 +52,10 @@ function applyTheme(pref: ThemePreference) {
 export function initTheme() {
 	applyTheme(getThemePreference())
 	if (typeof window !== 'undefined') {
-		window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-			if (getThemePreference() === 'system') applyTheme('system')
-		})
+		window
+			.matchMedia('(prefers-color-scheme: dark)')
+			.addEventListener('change', () => {
+				if (getThemePreference() === 'system') applyTheme('system')
+			})
 	}
 }

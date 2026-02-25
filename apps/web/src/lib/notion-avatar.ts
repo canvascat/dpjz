@@ -68,16 +68,12 @@ export const NOTION_AVATAR_LAYER_ORDER: Array<NotionAvatarPart> = [
 	'hair',
 ]
 
-
-const partModules = import.meta.glob<string>(
-	'./**/*.svg',
-	{
-		eager: true,
-		query: '?raw',
-		import: 'default',
-		base: '../assets/notion-avatar',
-	},
-)
+const partModules = import.meta.glob<string>('./**/*.svg', {
+	eager: true,
+	query: '?raw',
+	import: 'default',
+	base: '../assets/notion-avatar',
+})
 
 // path 格式为 ./type/index.svg（如 ./face/0.svg）
 const avatars = Object.entries(partModules).map(([path, raw]) => {
@@ -92,4 +88,3 @@ export const AVATAR_MAP = avatars.reduce(
 	},
 	Object.create(null) as Partial<Record<NotionAvatarPart, Array<string>>>,
 )
- 

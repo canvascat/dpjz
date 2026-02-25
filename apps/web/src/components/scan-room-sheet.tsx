@@ -70,8 +70,7 @@ export function ScanRoomSheet({
 				)
 			} catch (e) {
 				scannerRef.current = null
-				const msg =
-					e instanceof Error ? e.message : String(e)
+				const msg = e instanceof Error ? e.message : String(e)
 				setError(
 					msg.includes('NotAllowedError') || msg.includes('Permission')
 						? '需要相机权限才能扫码'
@@ -108,9 +107,7 @@ export function ScanRoomSheet({
 						id={SCANNER_ELEMENT_ID}
 						className="min-h-[240px] overflow-hidden rounded-lg bg-black"
 					/>
-					{error && (
-						<p className="text-sm text-destructive">{error}</p>
-					)}
+					{error && <p className="text-sm text-destructive">{error}</p>}
 				</div>
 			</SheetContent>
 		</Sheet>

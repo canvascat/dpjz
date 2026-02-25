@@ -1,5 +1,5 @@
 {
-	"include": ["**/*.ts", "**/*.tsx","eslint.config.js"],
+	"include": ["**/*.ts", "**/*.tsx", "eslint.config.js"],
 	"compilerOptions": {
 		"allowJs": true,
 		"target": "ES2022",

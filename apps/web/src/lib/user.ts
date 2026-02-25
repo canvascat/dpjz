@@ -85,7 +85,9 @@ export function getLocalUser(): LocalUser {
 				const avatarType: AvatarType =
 					rawType === 'text' || rawType === 'notion'
 						? rawType
-						: (parsed.notionAvatarConfig ? 'notion' : 'text')
+						: parsed.notionAvatarConfig
+							? 'notion'
+							: 'text'
 				return {
 					...parsed,
 					avatarType,

@@ -36,25 +36,23 @@ const sizeTextClasses = {
  * 同步拼接头像 SVG：从 AVATAR_MAP 读 part 内容，去外层 <svg>，包成 <g>，再拼成根 <svg viewBox="0 0 1080 1080">。
  * @see https://github.com/Mayandev/notion-avatar (AvatarEditor generatePreview)
  */
-function generatePreview(
-	config: NotionAvatarConfig,
-	flipped = false,
-): string {
+function generatePreview(config: NotionAvatarConfig, flipped = false): string {
 	const parts = NOTION_AVATAR_LAYER_ORDER
 	const groups = parts.map((type) => {
-			const svgRaw = AVATAR_MAP[type]?.[config[type]] ?? ''
-			if (!svgRaw) throw new Error(`Avatar part ${type} index ${config[type]} not found`)
-			// 与官方一致：去掉外层 <svg> 和 </svg>，只保留内部内容
-			const inner = svgRaw
-				.replace(/<svg[\s\S]*?>/i, '')
-				.replace(/<\/svg>\s*$/i, '')
-				.trim()
-			const faceFill = type === 'face' ? ' fill="#ffffff"' : ''
-			const flipTransform = flipped
-				? ' transform="scale(-1,1) translate(-1080, 0)"'
-				: ''
-			return `\n<g id="notion-avatar-${type}"${faceFill}${flipTransform}>\n${inner}\n</g>\n`
-		})
+		const svgRaw = AVATAR_MAP[type]?.[config[type]] ?? ''
+		if (!svgRaw)
+			throw new Error(`Avatar part ${type} index ${config[type]} not found`)
+		// 与官方一致：去掉外层 <svg> 和 </svg>，只保留内部内容
+		const inner = svgRaw
+			.replace(/<svg[\s\S]*?>/i, '')
+			.replace(/<\/svg>\s*$/i, '')
+			.trim()
+		const faceFill = type === 'face' ? ' fill="#ffffff"' : ''
+		const flipTransform = flipped
+			? ' transform="scale(-1,1) translate(-1080, 0)"'
+			: ''
+		return `\n<g id="notion-avatar-${type}"${faceFill}${flipTransform}>\n${inner}\n</g>\n`
+	})
 	const SVGFilter = ''
 	const previewSvg =
 		`<svg viewBox="0 0 1080 1080" fill="none" xmlns="http://www.w3.org/2000/svg">${SVGFilter}<g id="notion-avatar">${groups.join('\n\n')}</g></svg>`

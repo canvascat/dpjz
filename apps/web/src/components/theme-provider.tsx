@@ -17,7 +17,9 @@ export function useTheme() {
 
 /** 在根布局挂载一次，从 localStorage 恢复主题并监听系统偏好 */
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-	const [theme, setThemeState] = useState<ThemePreference>(() => getThemePreference())
+	const [theme, setThemeState] = useState<ThemePreference>(() =>
+		getThemePreference(),
+	)
 
 	useEffect(() => {
 		initTheme()

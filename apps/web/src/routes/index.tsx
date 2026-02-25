@@ -1,6 +1,12 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { Calculator, Clock, MessageCircle, QrCode, Settings } from 'lucide-react'
+import {
+	Calculator,
+	Clock,
+	MessageCircle,
+	QrCode,
+	Settings,
+} from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import type { RoomType } from '@/lib/user'

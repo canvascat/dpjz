@@ -26,7 +26,11 @@ import {
 	SheetTitle,
 } from '@/components/ui/sheet'
 
-const THEME_OPTIONS: Array<{ value: ThemePreference; label: string; icon: typeof Sun }> = [
+const THEME_OPTIONS: Array<{
+	value: ThemePreference
+	label: string
+	icon: typeof Sun
+}> = [
 	{ value: 'light', label: '浅色', icon: Sun },
 	{ value: 'dark', label: '深色', icon: Moon },
 	{ value: 'system', label: '跟随系统', icon: Monitor },
@@ -99,7 +103,9 @@ export function SettingsSheet({
 										<Icon className="h-4 w-4 shrink-0 text-muted-foreground" />
 										<span>{label}</span>
 										{current === value && (
-											<span className="ml-auto text-xs text-muted-foreground">已选</span>
+											<span className="ml-auto text-xs text-muted-foreground">
+												已选
+											</span>
 										)}
 									</Button>
 								))}

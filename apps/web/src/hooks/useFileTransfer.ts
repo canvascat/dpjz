@@ -394,7 +394,8 @@ export function useFileTransfer(
 			fileSignals.forEach((val) => {
 				const sigMap = val as Y.Map<string | number>
 				if ((sigMap.get('sessionId') as string) !== sessionId) return
-				if ((sigMap.get('toUserId') as string) !== localUserIdRef.current) return
+				if ((sigMap.get('toUserId') as string) !== localUserIdRef.current)
+					return
 				if ((sigMap.get('type') as string) === 'ice') {
 					const cand = sigMap.get('candidate') as string
 					if (cand) {
@@ -410,7 +411,9 @@ export function useFileTransfer(
 				fileSignals.forEach((val) => {
 					const sigMapInner = val as Y.Map<string | number>
 					if ((sigMapInner.get('sessionId') as string) !== sessionId) return
-					if ((sigMapInner.get('toUserId') as string) !== localUserIdRef.current)
+					if (
+						(sigMapInner.get('toUserId') as string) !== localUserIdRef.current
+					)
 						return
 					if ((sigMapInner.get('type') as string) === 'ice') {
 						const cand = sigMapInner.get('candidate') as string
@@ -450,7 +453,9 @@ export function useFileTransfer(
 		const observer = () => {
 			fileSignals.forEach((val) => {
 				const rejectedMap = val as Y.Map<string | number>
-				if ((rejectedMap.get('fromUserId') as string) !== localUserIdRef.current)
+				if (
+					(rejectedMap.get('fromUserId') as string) !== localUserIdRef.current
+				)
 					return
 				if (!rejectedMap.get('rejected')) return
 				const sigSessionId = rejectedMap.get('sessionId') as string
