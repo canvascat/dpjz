@@ -137,5 +137,4 @@ After deploying signaling, set the frontend’s `VITE_SIGNALING_URL` to the **ws
 
 ## Notes
 
-- Files prefixed with `demo.` are examples and can be removed.
 - [TanStack docs](https://tanstack.com) for Router/Query.

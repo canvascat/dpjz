@@ -145,5 +145,4 @@ pnpm check     # Prettier 写回 + ESLint 修复
 
 ## 其他说明
 
-- 以 `demo.` 开头的文件为示例，可按需删除。
 - 更多 TanStack 用法见 [TanStack 文档](https://tanstack.com)。
