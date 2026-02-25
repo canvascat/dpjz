@@ -4,9 +4,9 @@ import * as Y from 'yjs'
 import type { IndexeddbPersistence } from 'y-indexeddb'
 import type { WebrtcProvider } from 'y-webrtc'
 
-import { getSignalingUrls } from '@/lib/constants'
 import type { LocalUser } from '@/lib/user'
 import type { NotionAvatarConfig } from '@/lib/notion-avatar'
+import { getSignalingUrls } from '@/lib/constants'
 
 /** 聊天消息数据结构 */
 export interface ChatMessage {
@@ -39,7 +39,10 @@ export interface PendingClipboardRequest {
 /** 收到的剪切板内容（我发起的请求得到的响应） */
 export interface ReceivedClipboard {
 	requestId: string
-	content: string
+	/** 原始二进制内容 */
+	data: Uint8Array
+	/** MIME 类型，如 text/plain、image/png */
+	mimeType: string
 	fromNickname: string
 }
 
@@ -72,10 +75,10 @@ interface UseYjsChatReturn {
 		requestId: string,
 		accept: boolean,
 	) => Promise<void>
-	/** 用已在用户手势中发起的 readText Promise 回复（供 iOS Safari） */
+	/** 用已在用户手势中发起的 clipboard.read() Promise 回复（供 iOS Safari） */
 	respondToClipboardRequestWithContent: (
 		requestId: string,
-		contentPromise: Promise<string>,
+		contentPromise: Promise<{ data: Uint8Array; mimeType: string }>,
 	) => Promise<void>
 	/** 收到的剪切板内容（我请求后对方同意发来的） */
 	receivedClipboard: ReceivedClipboard | null
@@ -83,10 +86,29 @@ interface UseYjsChatReturn {
 	consumeClipboardResponse: () => void
 }
 
-/**
- * 增强版 Yjs P2P 聊天 hook
- * 支持 userId 身份标识、awareness 在线成员信息
- */
+/** 读取剪切板，返回第一个有效 item 的原始数据和 MIME 类型 */
+export async function readClipboardItem(): Promise<{
+	data: Uint8Array
+	mimeType: string
+}> {
+	const items = await navigator.clipboard.read()
+	const item = items[0]
+	if (!item) throw new Error('CLIPBOARD_EMPTY')
+	// 优先图片，其次文本
+	const preferredTypes = [
+		'image/png',
+		'image/jpeg',
+		'image/gif',
+		'image/webp',
+		'text/plain',
+	]
+	const mimeType =
+		preferredTypes.find((t) => item.types.includes(t)) ?? item.types[0]
+	if (!mimeType) throw new Error('CLIPBOARD_EMPTY')
+	const blob = await item.getType(mimeType)
+	const buffer = await blob.arrayBuffer()
+	return { data: new Uint8Array(buffer), mimeType }
+}
 export function useYjsChat(
 	roomId: string,
 	localUser: LocalUser,
@@ -224,15 +246,19 @@ export function useYjsChat(
 
 		const checkResponses = () => {
 			if (!disposed) {
-				clipboardResponses.forEach((content, requestId) => {
+				clipboardResponses.forEach((val, requestId) => {
 					if (myRequestIdsRef.current.has(requestId)) {
 						const toNickname =
 							myPendingRequestsRef.current.get(requestId)?.toNickname ?? '对方'
 						myRequestIdsRef.current.delete(requestId)
 						myPendingRequestsRef.current.delete(requestId)
+						const yMap = val as Y.Map<unknown>
+						const data = yMap.get('data') as Uint8Array
+						const mimeType = (yMap.get('mimeType') as string) || 'text/plain'
 						setReceivedClipboard({
 							requestId,
-							content: String(content),
+							data,
+							mimeType,
 							fromNickname: toNickname,
 						})
 					}
@@ -446,9 +472,12 @@ export function useYjsChat(
 				return
 			}
 			try {
-				const content = await navigator.clipboard.readText()
+				const { data, mimeType } = await readClipboardItem()
 				doc.transact(() => {
-					clipboardResponses.set(requestId, content)
+					const responseMap = new Y.Map<unknown>()
+					responseMap.set('data', data)
+					responseMap.set('mimeType', mimeType)
+					clipboardResponses.set(requestId, responseMap)
 					clipboardRequests.delete(requestId)
 				})
 			} catch {
@@ -462,9 +491,12 @@ export function useYjsChat(
 		[],
 	)
 
-	/** 用已在用户手势中发起的 readText() Promise 回复请求，供 iOS Safari 等需同调栈读剪切板的场景 */
+	/** 用已在用户手势中发起的 clipboard.read() Promise 回复请求，供 iOS Safari 等需同调栈读剪切板的场景 */
 	const respondToClipboardRequestWithContent = useCallback(
-		async (requestId: string, contentPromise: Promise<string>) => {
+		async (
+			requestId: string,
+			contentPromise: Promise<{ data: Uint8Array; mimeType: string }>,
+		) => {
 			const { doc, clipboardRequests, clipboardResponses } = yjsRef.current
 			if (!doc || !clipboardRequests || !clipboardResponses) return
 			const yMap = clipboardRequests.get(requestId) as
@@ -472,9 +504,12 @@ export function useYjsChat(
 				| undefined
 			if (!yMap) return
 			try {
-				const content = await contentPromise
+				const { data, mimeType } = await contentPromise
 				doc.transact(() => {
-					clipboardResponses.set(requestId, content)
+					const responseMap = new Y.Map<unknown>()
+					responseMap.set('data', data)
+					responseMap.set('mimeType', mimeType)
+					clipboardResponses.set(requestId, responseMap)
 					clipboardRequests.delete(requestId)
 				})
 			} catch {

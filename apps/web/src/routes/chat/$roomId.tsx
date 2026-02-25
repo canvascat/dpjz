@@ -4,7 +4,7 @@ import { ArrowLeft, Send, Users } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import type { PeerInfo } from '@/hooks/useYjsChat'
-import ChatMessages from '@/components/chat-messages'
+import { readClipboardItem, useYjsChat } from '@/hooks/useYjsChat'
 import { ChatMemberBar } from '@/components/chat-member-bar'
 import { ChatPeerActionSheet } from '@/components/chat-peer-action-sheet'
 import { ProfileSheet } from '@/components/profile-sheet'
@@ -37,7 +37,6 @@ import {
 } from '@/hooks/useFileTransfer'
 import { useLocalUser } from '@/hooks/useLocalUser'
 import { useRecentRooms } from '@/hooks/useRecentRooms'
-import { useYjsChat } from '@/hooks/useYjsChat'
 
 function ChatRoom() {
 	const { roomId } = Route.useParams()
@@ -160,22 +159,27 @@ function ChatRoom() {
 		}
 	}
 
-	/** iOS Safari 需在用户点击的同一同步调栈中启动 readText，再传入 Promise */
+	/** iOS Safari 需在用户点击的同一同步调栈中启动 clipboard.read，再传入 Promise */
 	const handleAcceptClipboard = (requestId: string) => {
-		if (typeof navigator.clipboard?.readText !== 'function') {
+		if (typeof navigator.clipboard?.read !== 'function') {
 			toast.error('无法读取剪切板')
 			return
 		}
-		const contentPromise = navigator.clipboard.readText()
-		respondToClipboardRequestWithContent(requestId, contentPromise).catch(
-			() => toast.error('无法读取剪切板'),
+		const contentPromise = readClipboardItem()
+		respondToClipboardRequestWithContent(requestId, contentPromise).catch(() =>
+			toast.error('无法读取剪切板'),
 		)
 	}
 
 	const handleCopyReceived = async () => {
 		if (!receivedClipboard) return
 		try {
-			await navigator.clipboard.writeText(receivedClipboard.content)
+			const blob = new Blob([receivedClipboard.data], {
+				type: receivedClipboard.mimeType,
+			})
+			await navigator.clipboard.write([
+				new ClipboardItem({ [receivedClipboard.mimeType]: blob }),
+			])
 			toast.success('已复制')
 		} catch {
 			toast.error('复制失败')
@@ -367,7 +371,8 @@ function ChatRoom() {
 						</Button>
 						<Button
 							onClick={() => {
-								if (pendingRequest) handleAcceptClipboard(pendingRequest.requestId)
+								if (pendingRequest)
+									handleAcceptClipboard(pendingRequest.requestId)
 							}}
 							className="w-full min-h-[44px]"
 						>
@@ -405,11 +410,22 @@ function ChatRoom() {
 						<SheetDescription>可复制到剪切板</SheetDescription>
 					</SheetHeader>
 					<div className="space-y-4 px-5 pt-4 pb-4">
-						{receivedClipboard && (
-							<pre className="max-h-[40vh] overflow-auto overscroll-y-contain rounded-lg bg-muted/60 p-3 text-sm whitespace-pre-wrap break-words">
-								{receivedClipboard.content || '(空)'}
-							</pre>
-						)}
+						{receivedClipboard &&
+							(receivedClipboard.mimeType.startsWith('image/') ? (
+								<img
+									src={URL.createObjectURL(
+										new Blob([receivedClipboard.data], {
+											type: receivedClipboard.mimeType,
+										}),
+									)}
+									alt="剪切板图片"
+									className="max-h-[40vh] w-auto rounded-lg object-contain"
+								/>
+							) : (
+								<pre className="max-h-[40vh] overflow-auto overscroll-y-contain rounded-lg bg-muted/60 p-3 text-sm whitespace-pre-wrap break-words">
+									{new TextDecoder().decode(receivedClipboard.data) || '(空)'}
+								</pre>
+							))}
 						<Button
 							variant="outline"
 							className="w-full min-h-[44px]"
