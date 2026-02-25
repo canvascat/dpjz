@@ -1,5 +1,7 @@
 # dpjz
 
+[中文](./README.zh-CN.md)
+
 A P2P collaboration app built with **Yjs + WebRTC**: real-time chat, scorekeeping (poker-style), clipboard sharing, and file transfer—all without a backend for application data. Supports PWA and can be deployed on Cloudflare’s free tier.
 
 ## Features
@@ -135,6 +137,3 @@ After deploying signaling, set the frontend’s `VITE_SIGNALING_URL` to the **ws
 - Styling: Tailwind; UI patterns follow shadcn/ui. Add components with `pnpm dlx shadcn@latest add <name>` inside `apps/web`.
 - Layout: Mobile-first, touch-friendly, PWA-oriented.
 
-## Notes
-
-- [TanStack docs](https://tanstack.com) for Router/Query.
