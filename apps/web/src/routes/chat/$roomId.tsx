@@ -27,10 +27,6 @@ import {
 	SheetTitle,
 } from '@/components/ui/sheet'
 import {
-	addClipboardAutoAllow,
-	isClipboardAutoAllow,
-} from '@/lib/clipboard-auto-allow'
-import {
 	MAX_FILE_SIZE,
 	formatFileSize,
 	useFileTransfer,
@@ -87,12 +83,6 @@ function ChatRoom() {
 		return () => mq.removeEventListener('change', handler)
 	}, [])
 
-	// 仅对未设为「不再询问」的请求弹窗；已信任的请求自动代为同意
-	const pendingRequestsToShow = pendingClipboardRequests.filter(
-		(r) => !isClipboardAutoAllow(roomId, r.fromUserId),
-	)
-	const pendingRequest = pendingRequestsToShow[0] ?? null
-
 	// 记录到最近房间
 	useEffect(() => {
 		if (roomId) addRecentRoom(roomId, 'chat')
@@ -109,18 +99,6 @@ function ChatRoom() {
 			toast.success(`已收到 ${receivedClipboard.fromNickname} 的剪切板`)
 		}
 	}, [receivedClipboard])
-
-	// 已设为「不再询问」的请求自动代为同意并发送
-	useEffect(() => {
-		const autoAllowed = pendingClipboardRequests.filter((r) =>
-			isClipboardAutoAllow(roomId, r.fromUserId),
-		)
-		for (const r of autoAllowed) {
-			respondToClipboardRequest(r.requestId, true).catch(() => {
-				toast.error('无法读取剪切板')
-			})
-		}
-	}, [roomId, pendingClipboardRequests, respondToClipboardRequest])
 
 	const handleSend = () => {
 		const trimmed = input.trim()
@@ -377,18 +355,6 @@ function ChatRoom() {
 							className="w-full min-h-[44px]"
 						>
 							同意并发送
-						</Button>
-						<Button
-							variant="secondary"
-							onClick={() => {
-								if (pendingRequest) {
-									addClipboardAutoAllow(roomId, pendingRequest.fromUserId)
-									handleAcceptClipboard(pendingRequest.requestId)
-								}
-							}}
-							className="w-full min-h-[44px]"
-						>
-							同意且不再询问
 						</Button>
 					</DialogFooter>
 				</DialogContent>
