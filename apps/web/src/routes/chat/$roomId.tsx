@@ -153,7 +153,7 @@ function ChatRoom() {
 	const handleCopyReceived = async () => {
 		if (!receivedClipboard) return
 		try {
-			const blob = new Blob([receivedClipboard.data], {
+			const blob = new Blob([receivedClipboard.data.buffer as ArrayBuffer], {
 				type: receivedClipboard.mimeType,
 			})
 			await navigator.clipboard.write([
@@ -382,7 +382,7 @@ function ChatRoom() {
 							(receivedClipboard.mimeType.startsWith('image/') ? (
 								<img
 									src={URL.createObjectURL(
-										new Blob([receivedClipboard.data], {
+										new Blob([receivedClipboard.data.buffer as ArrayBuffer], {
 											type: receivedClipboard.mimeType,
 										}),
 									)}

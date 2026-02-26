@@ -1,4 +1,4 @@
-import { Calculator, Clock, MessageCircle, Trash2 } from 'lucide-react'
+import { Calculator, MessageCircle, Trash2 } from 'lucide-react'
 import type { RecentRoom, RoomType } from '@/lib/user'
 
 import { Button } from '@/components/ui/button'
