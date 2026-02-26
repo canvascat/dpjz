@@ -245,6 +245,8 @@ export function useFileTransfer(
 						setTimeout(() => clearSessionFromSignals(sessionId), 500)
 						return
 					}
+					// 背压：缓冲区积压超过 1MB 时等 bufferedamountlow 再继续
+					if (dc.bufferedAmount > 1024 * 1024) return
 					const chunk = file.slice(offset, offset + CHUNK_SIZE)
 					const reader = new FileReader()
 					reader.onload = () => {
@@ -258,6 +260,8 @@ export function useFileTransfer(
 					}
 					reader.readAsArrayBuffer(chunk)
 				}
+				dc.bufferedAmountLowThreshold = 256 * 1024
+				dc.onbufferedamountlow = sendChunk
 				sendChunk()
 			}
 			dc.onerror = () => {
@@ -317,30 +321,15 @@ export function useFileTransfer(
 				const dc = e.channel
 				dc.binaryType = 'arraybuffer'
 				const chunks: Array<ArrayBuffer> = []
-				let meta: { fileName: string; fileSize: number } | null = null
-				dc.onmessage = (ev) => {
-					if (typeof ev.data === 'string') {
-						meta = JSON.parse(ev.data) as {
-							fileName: string
-							fileSize: number
-						}
-						return
-					}
-					chunks.push(ev.data as ArrayBuffer)
-					if (meta) {
-						const received = chunks.reduce((a, c) => a + c.byteLength, 0)
-						const percent = Math.min(
-							99,
-							Math.round((received / meta.fileSize) * 100),
-						)
-						setReceiveProgress((p) =>
-							p?.sessionId === sessionId ? { ...p, percent } : p,
-						)
-					}
-				}
+				let meta: {
+					fileName: string
+					fileSize: number
+					mimeType?: string
+				} | null = null
+				// 问题2修复：onclose 移到顶层，不在 onmessage 里反复赋值
 				dc.onclose = () => {
 					if (!meta) return
-					const blob = new Blob(chunks)
+					const blob = new Blob(chunks, { type: meta.mimeType }) // 问题4修复：带上 mimeType
 					setReceiveProgress((p) =>
 						p?.sessionId === sessionId
 							? { ...p, percent: 100, status: 'done' }
@@ -356,7 +345,57 @@ export function useFileTransfer(
 					sessionPeersRef.current.delete(sessionId)
 					clearSessionFromSignals(sessionId)
 				}
+				dc.onmessage = (ev) => {
+					if (typeof ev.data === 'string') {
+						meta = JSON.parse(ev.data) as {
+							fileName: string
+							fileSize: number
+							mimeType?: string
+						}
+						return
+					}
+					chunks.push(ev.data as ArrayBuffer)
+					if (meta) {
+						const received = chunks.reduce((a, c) => a + c.byteLength, 0)
+						const percent = Math.min(
+							99,
+							Math.round((received / meta.fileSize) * 100),
+						)
+						setReceiveProgress((p) =>
+							p?.sessionId === sessionId ? { ...p, percent } : p,
+						)
+					}
+				}
 			}
+
+			// 问题3修复：先收集 ICE candidate，等 setRemoteDescription 完成后再添加
+			const pendingCandidates: Array<RTCIceCandidateInit> = []
+			const iceObserver = () => {
+				fileSignals.forEach((val) => {
+					const sigMapInner = val as Y.Map<string | number>
+					if ((sigMapInner.get('sessionId') as string) !== sessionId) return
+					if (
+						(sigMapInner.get('toUserId') as string) !== localUserIdRef.current
+					)
+						return
+					if ((sigMapInner.get('type') as string) === 'ice') {
+						const cand = sigMapInner.get('candidate') as string
+						if (cand) {
+							try {
+								const candidate = JSON.parse(cand) as RTCIceCandidateInit
+								if (pc.remoteDescription) {
+									pc.addIceCandidate(new RTCIceCandidate(candidate)).catch(
+										() => {},
+									)
+								} else {
+									pendingCandidates.push(candidate)
+								}
+							} catch {}
+						}
+					}
+				})
+			}
+			fileSignals.observe(iceObserver)
 
 			try {
 				const desc = JSON.parse(sdpStr)
@@ -365,6 +404,11 @@ export function useFileTransfer(
 					.then((answer) => pc.setLocalDescription(answer))
 					.then(() => {
 						if (!doc || !fileSignals) return
+						// remoteDescription 已就绪，添加之前积压的 ICE candidates
+						for (const c of pendingCandidates) {
+							pc.addIceCandidate(new RTCIceCandidate(c)).catch(() => {})
+						}
+						pendingCandidates.length = 0
 						doc.transact(() => {
 							const m = new Y.Map<string | number>()
 							m.set('type', 'answer')
@@ -389,45 +433,6 @@ export function useFileTransfer(
 				pc.close()
 				sessionPeersRef.current.delete(sessionId)
 			}
-
-			// 处理发送方发来的 ice（key 可能是 sessionId-ice-*）
-			fileSignals.forEach((val) => {
-				const sigMap = val as Y.Map<string | number>
-				if ((sigMap.get('sessionId') as string) !== sessionId) return
-				if ((sigMap.get('toUserId') as string) !== localUserIdRef.current)
-					return
-				if ((sigMap.get('type') as string) === 'ice') {
-					const cand = sigMap.get('candidate') as string
-					if (cand) {
-						try {
-							pc.addIceCandidate(new RTCIceCandidate(JSON.parse(cand))).catch(
-								() => {},
-							)
-						} catch {}
-					}
-				}
-			})
-			const iceObserver = () => {
-				fileSignals.forEach((val) => {
-					const sigMapInner = val as Y.Map<string | number>
-					if ((sigMapInner.get('sessionId') as string) !== sessionId) return
-					if (
-						(sigMapInner.get('toUserId') as string) !== localUserIdRef.current
-					)
-						return
-					if ((sigMapInner.get('type') as string) === 'ice') {
-						const cand = sigMapInner.get('candidate') as string
-						if (cand) {
-							try {
-								pc.addIceCandidate(new RTCIceCandidate(JSON.parse(cand))).catch(
-									() => {},
-								)
-							} catch {}
-						}
-					}
-				})
-			}
-			fileSignals.observe(iceObserver)
 		},
 		[doc, fileSignals, clearSessionFromSignals],
 	)
