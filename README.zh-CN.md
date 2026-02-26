@@ -1,5 +1,7 @@
 # dpjz
 
+[English](./README.md)
+
 基于 **Yjs + WebRTC** 的 P2P 协作应用：实时聊天、记账房（扑克式记分）、剪切板读取与 P2P 文件传输，应用数据无需自建后端。支持 PWA，可部署到 Cloudflare 免费额度。
 
 ## 功能概览
@@ -143,7 +145,3 @@ pnpm check     # Prettier 写回 + ESLint 修复
 - 样式：Tailwind，组件风格见 shadcn/ui；新增组件可用 `pnpm dlx shadcn@latest add <组件名>`（在 `apps/web` 下执行）。
 - 设计：移动端优先、触控友好，目标为 PWA。
 
-## 其他说明
-
-- 以 `demo.` 开头的文件为示例，可按需删除。
-- 更多 TanStack 用法见 [TanStack 文档](https://tanstack.com)。
