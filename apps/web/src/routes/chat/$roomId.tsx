@@ -500,7 +500,7 @@ function ChatRoom() {
 								`${receivedFile.fromNickname} 发送了 ${receivedFile.fileName}`}
 						</SheetDescription>
 					</SheetHeader>
-					<div className="mt-4 px-1">
+					<div className="mt-4 px-5">
 						<Button
 							className="w-full min-h-[44px]"
 							onClick={handleSaveReceivedFile}
