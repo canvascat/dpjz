@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import type { PeerInfo } from '@/hooks/useYjsChat'
 import { readClipboardItem, useYjsChat } from '@/hooks/useYjsChat'
+import ChatMessages from '@/components/chat-messages'
 import { ChatMemberBar } from '@/components/chat-member-bar'
 import { ChatPeerActionSheet } from '@/components/chat-peer-action-sheet'
 import { ProfileSheet } from '@/components/profile-sheet'
@@ -196,6 +197,7 @@ function ChatRoom() {
 	}
 
 	const incomingFileOffer = incomingOffers[0] ?? null
+	const pendingRequest = pendingClipboardRequests[0] ?? null
 
 	return (
 		<div className="flex h-dvh flex-col bg-background">
