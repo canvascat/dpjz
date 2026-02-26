@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import { Link, createFileRoute } from '@tanstack/react-router'
 import { ArrowLeft, Send, Users } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import type { PeerInfo } from '@/hooks/useYjsChat'
 import { readClipboardItem, useYjsChat } from '@/hooks/useYjsChat'
@@ -100,6 +100,21 @@ function ChatRoom() {
 			toast.success(`已收到 ${receivedClipboard.fromNickname} 的剪切板`)
 		}
 	}, [receivedClipboard])
+
+	// 图片预览的 Object URL，随 receivedClipboard 变化自动 revoke
+	const clipboardImageUrl = useMemo(() => {
+		if (!receivedClipboard?.mimeType.startsWith('image/')) return null
+		return URL.createObjectURL(
+			new Blob([receivedClipboard.data.buffer as ArrayBuffer], {
+				type: receivedClipboard.mimeType,
+			}),
+		)
+	}, [receivedClipboard])
+	useEffect(() => {
+		return () => {
+			if (clipboardImageUrl) URL.revokeObjectURL(clipboardImageUrl)
+		}
+	}, [clipboardImageUrl])
 
 	const handleSend = () => {
 		const trimmed = input.trim()
@@ -381,11 +396,7 @@ function ChatRoom() {
 						{receivedClipboard &&
 							(receivedClipboard.mimeType.startsWith('image/') ? (
 								<img
-									src={URL.createObjectURL(
-										new Blob([receivedClipboard.data.buffer as ArrayBuffer], {
-											type: receivedClipboard.mimeType,
-										}),
-									)}
+									src={clipboardImageUrl ?? undefined}
 									alt="剪切板图片"
 									className="max-h-[40vh] w-auto rounded-lg object-contain"
 								/>
