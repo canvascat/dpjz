@@ -1,18 +1,18 @@
 packages:
-  - 'apps/web'
-  - 'apps/signaling'
-  - 'apps/signaling-cf'
+  - "apps/web"
+  - "apps/signaling"
+  - "apps/signaling-cf"
 catalog:
   vite: npm:@voidzero-dev/vite-plus-core@latest
   vitest: 4.1.9
   vite-plus: latest
 overrides:
-  vite: 'catalog:'
-  vitest: 'catalog:'
+  vite: "catalog:"
+  vitest: "catalog:"
 peerDependencyRules:
   allowAny:
     - vite
     - vitest
   allowedVersions:
-    vite: '*'
-    vitest: '*'
+    vite: "*"
+    vitest: "*"

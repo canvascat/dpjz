@@ -1,27 +1,27 @@
 {
-	"include": ["**/*.ts", "**/*.tsx", "eslint.config.js"],
-	"compilerOptions": {
-		"allowJs": true,
-		"target": "ES2022",
-		"jsx": "react-jsx",
-		"module": "ESNext",
-		"lib": ["ES2022", "DOM", "DOM.Iterable"],
-		"types": ["vite-plus/client", "vite-plugin-pwa/client"],
+  "include": ["**/*.ts", "**/*.tsx", "eslint.config.js"],
+  "compilerOptions": {
+    "allowJs": true,
+    "target": "ES2022",
+    "jsx": "react-jsx",
+    "module": "ESNext",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "types": ["vite-plus/client", "vite-plugin-pwa/client"],
 
-		"moduleResolution": "bundler",
-		"allowImportingTsExtensions": true,
-		"verbatimModuleSyntax": false,
-		"noEmit": true,
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": false,
+    "noEmit": true,
 
-		"skipLibCheck": true,
-		"strict": true,
-		"noUnusedLocals": true,
-		"noUnusedParameters": true,
-		"noFallthroughCasesInSwitch": true,
-		"noUncheckedSideEffectImports": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedSideEffectImports": true,
 
-		"paths": {
-			"@/*": ["./src/*"]
-		}
-	}
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  }
 }

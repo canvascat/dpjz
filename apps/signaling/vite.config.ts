@@ -1,11 +1,11 @@
-import { defineConfig } from 'vite-plus'
+import { defineConfig } from "vite-plus";
 
 export default defineConfig({
-	pack: {
-		entry: ['src/index.ts'],
-		format: 'esm',
-		platform: 'node',
-		outDir: 'dist',
-		dts: false,
-	},
-})
+  pack: {
+    entry: ["src/index.ts"],
+    format: "esm",
+    platform: "node",
+    outDir: "dist",
+    dts: false,
+  },
+});

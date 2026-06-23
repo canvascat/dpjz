@@ -118,11 +118,11 @@ After deploying signaling, set the frontend’s `VITE_SIGNALING_URL` to the **ws
 
 ## Environment variables
 
-| Variable | Purpose | Where |
-|----------|---------|--------|
-| `VITE_SIGNALING_URL` | Signaling WebSocket (ws/wss) | Injected at frontend build time; default `ws://localhost:4444` |
-| `PORT` | Node signaling server port | `apps/signaling`, default 4444 |
-| `CLOUDFLARE_API_TOKEN` | Cloudflare API token | Deploy without interactive login |
+| Variable               | Purpose                      | Where                                                          |
+| ---------------------- | ---------------------------- | -------------------------------------------------------------- |
+| `VITE_SIGNALING_URL`   | Signaling WebSocket (ws/wss) | Injected at frontend build time; default `ws://localhost:4444` |
+| `PORT`                 | Node signaling server port   | `apps/signaling`, default 4444                                 |
+| `CLOUDFLARE_API_TOKEN` | Cloudflare API token         | Deploy without interactive login                               |
 
 ## Tech stack
 
@@ -136,4 +136,3 @@ After deploying signaling, set the frontend’s `VITE_SIGNALING_URL` to the **ws
 - Routes: TanStack Router file-based under `apps/web/src/routes`.
 - Styling: Tailwind; UI patterns follow shadcn/ui. Add components with `pnpm dlx shadcn@latest add <name>` inside `apps/web`.
 - Layout: Mobile-first, touch-friendly, PWA-oriented.
-

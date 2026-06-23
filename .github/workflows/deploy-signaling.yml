@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - 'apps/signaling-cf/**'
+      - "apps/signaling-cf/**"
 
 jobs:
   deploy-signaling:
