@@ -80,9 +80,9 @@ pnpm --filter signaling build
 
 ```bash
 pnpm test      # 前端单元测试
-pnpm lint      # ESLint
-pnpm format    # Prettier 检查
-pnpm check     # Prettier 写回 + ESLint 修复
+pnpm lint      # Oxlint
+pnpm format    # Oxfmt 检查
+pnpm check     # Oxfmt 写回 + Oxlint 修复 + tsc
 ```
 
 ## 部署到 Cloudflare（免费）
@@ -92,12 +92,15 @@ pnpm check     # Prettier 写回 + ESLint 修复
 信令部署后，前端需使用其 **wss** 地址作为 `VITE_SIGNALING_URL`。
 
 1. 登录 Cloudflare：
+
    ```bash
    cd apps/signaling-cf && pnpm exec wrangler login
    ```
+
    或设置环境变量 `CLOUDFLARE_API_TOKEN`。
 
 2. 部署：
+
    ```bash
    pnpm deploy:signaling
    ```
@@ -126,11 +129,11 @@ pnpm check     # Prettier 写回 + ESLint 修复
 
 ## 环境变量
 
-| 变量 | 作用 | 使用位置 |
-|------|------|----------|
-| `VITE_SIGNALING_URL` | 信令 WebSocket 地址（ws/wss） | 前端构建时注入，未设置时默认 `ws://localhost:4444` |
-| `PORT` | Node 信令服务端口 | `apps/signaling`，默认 4444 |
-| `CLOUDFLARE_API_TOKEN` | Cloudflare API 令牌 | 非交互环境部署 Worker/Pages 时使用 |
+| 变量                   | 作用                          | 使用位置                                           |
+| ---------------------- | ----------------------------- | -------------------------------------------------- |
+| `VITE_SIGNALING_URL`   | 信令 WebSocket 地址（ws/wss） | 前端构建时注入，未设置时默认 `ws://localhost:4444` |
+| `PORT`                 | Node 信令服务端口             | `apps/signaling`，默认 4444                        |
+| `CLOUDFLARE_API_TOKEN` | Cloudflare API 令牌           | 非交互环境部署 Worker/Pages 时使用                 |
 
 ## 技术栈
 
@@ -144,4 +147,3 @@ pnpm check     # Prettier 写回 + ESLint 修复
 - 路由：TanStack Router，文件位于 `apps/web/src/routes`。
 - 样式：Tailwind，组件风格见 shadcn/ui；新增组件可用 `pnpm dlx shadcn@latest add <组件名>`（在 `apps/web` 下执行）。
 - 设计：移动端优先、触控友好，目标为 PWA。
-

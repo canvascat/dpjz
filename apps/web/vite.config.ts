@@ -1,16 +1,13 @@
 import tailwindcss from '@tailwindcss/vite'
 import { tanstackRouter } from '@tanstack/router-plugin/vite'
 import viteReact from '@vitejs/plugin-react'
-import { defineConfig } from 'vite'
+import { defineConfig, lazyPlugins } from 'vite-plus'
 import { VitePWA } from 'vite-plugin-pwa'
-import viteTsConfigPaths from 'vite-tsconfig-paths'
 
 export default defineConfig({
-	plugins: [
+	resolve: { tsconfigPaths: true },
+	plugins: lazyPlugins(() => [
 		tanstackRouter({ target: 'react', autoCodeSplitting: true }),
-		viteTsConfigPaths({
-			projects: ['./tsconfig.json'],
-		}),
 		tailwindcss(),
 		viteReact(),
 		VitePWA({
@@ -29,5 +26,5 @@ export default defineConfig({
 				],
 			},
 		}),
-	],
+	]),
 })

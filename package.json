@@ -1,7 +1,6 @@
 {
 	"name": "dpjz",
 	"private": true,
-	"packageManager": "pnpm@11.0.0-dev.1005+sha512.91f84a392eea348ea4852a182912d2520273a4336f933b78cc44bc931eb999923c097e9433a9b355adc1f725725ea99082fc9f032a559df832632e764c92c798",
 	"scripts": {
 		"dev": "pnpm --filter web dev",
 		"build": "pnpm --filter web build",
@@ -12,17 +11,12 @@
 		"check": "pnpm --filter web check",
 		"signaling:start": "pnpm --filter signaling start",
 		"deploy:web": "pnpm --filter web run deploy",
-		"deploy:signaling": "pnpm --filter signaling-cf deploy"
+		"deploy:signaling": "pnpm --filter signaling-cf deploy",
+		"prepare": "vp config"
 	},
 	"devDependencies": {
-		"@tanstack/eslint-config": "^0.3.0",
-		"eslint": "^9.16.0",
-		"prettier": "^3.5.3",
-		"typescript": "^5.9.3"
+		"typescript": "^5.9.3",
+		"vite-plus": "catalog:"
 	},
-	"pnpm": {
-		"overrides": {
-			"vite": "npm:rolldown-vite@latest"
-		}
-	}
+	"packageManager": "pnpm@11.0.0-dev.1005+sha512.91f84a392eea348ea4852a182912d2520273a4336f933b78cc44bc931eb999923c097e9433a9b355adc1f725725ea99082fc9f032a559df832632e764c92c798"
 }

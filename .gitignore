@@ -13,3 +13,4 @@ count.txt
 todos.json
 *.gen.ts
 .claude
+.vite-hooks
