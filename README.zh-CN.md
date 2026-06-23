@@ -80,9 +80,9 @@ pnpm --filter signaling build
 
 ```bash
 pnpm test      # 前端单元测试
-pnpm lint      # ESLint
-pnpm format    # Prettier 检查
-pnpm check     # Prettier 写回 + ESLint 修复
+pnpm lint      # Oxlint
+pnpm format    # Oxfmt 检查
+pnpm check     # Oxfmt 写回 + Oxlint 修复 + tsc
 ```
 
 ## 部署到 Cloudflare（免费）

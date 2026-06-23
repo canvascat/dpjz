@@ -80,9 +80,9 @@ pnpm --filter signaling build
 
 ```bash
 pnpm test      # Frontend unit tests
-pnpm lint      # ESLint
-pnpm format    # Prettier check
-pnpm check     # Prettier write + ESLint fix
+pnpm lint      # Oxlint
+pnpm format    # Oxfmt check
+pnpm check     # Oxfmt write + Oxlint fix + tsc
 ```
 
 ## Deploy (Cloudflare)

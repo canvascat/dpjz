@@ -27,9 +27,9 @@ pnpm build                        # 前端构建
 pnpm --filter signaling build     # Node 信令构建 → dist/index.mjs
 
 # 代码质量
-pnpm lint      # ESLint 检查
-pnpm format    # Prettier 格式化检查（不写入）
-pnpm check     # Prettier 写入 + ESLint 自动修复
+pnpm lint      # Oxlint 检查
+pnpm format    # Oxfmt 格式化检查（不写入）
+pnpm check     # Oxfmt 写入 + Oxlint 自动修复 + tsc
 pnpm test      # 前端单元测试
 
 # 部署（Cloudflare）

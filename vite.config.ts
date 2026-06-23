@@ -11,6 +11,11 @@ export default defineConfig({
 		trailingComma: 'all',
 		printWidth: 80,
 		sortPackageJson: false,
-		ignorePatterns: ['package-lock.json', 'pnpm-lock.yaml', 'yarn.lock'],
+		ignorePatterns: [
+			'package-lock.json',
+			'pnpm-lock.yaml',
+			'yarn.lock',
+			'**/*.gen.ts',
+		],
 	},
 })
