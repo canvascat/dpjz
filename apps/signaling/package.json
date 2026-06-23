@@ -1,21 +1,21 @@
 {
-  "name": "signaling",
-  "private": true,
-  "type": "module",
-  "scripts": {
-    "build": "vp pack",
-    "dev": "node --watch src/index.ts",
-    "start": "node dist/index.mjs"
-  },
-  "dependencies": {
-    "lib0": "^0.2.117",
-    "ws": "^8.19.0"
-  },
-  "devDependencies": {
-    "@types/node": "^22.10.2",
-    "@types/ws": "^8.18.1",
-    "tsx": "^4.19.2",
-    "typescript": "^5.9.3",
-    "vite-plus": "catalog:"
-  }
+	"name": "signaling",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"build": "vp pack",
+		"dev": "node --watch src/index.ts",
+		"start": "node dist/index.mjs"
+	},
+	"dependencies": {
+		"lib0": "^0.2.117",
+		"ws": "^8.19.0"
+	},
+	"devDependencies": {
+		"@types/node": "^22.10.2",
+		"@types/ws": "^8.18.1",
+		"tsx": "^4.19.2",
+		"typescript": "^5.9.3",
+		"vite-plus": "catalog:"
+	}
 }
