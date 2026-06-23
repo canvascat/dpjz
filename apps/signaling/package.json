@@ -3,7 +3,7 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
-		"build": "tsdown",
+		"build": "vp pack",
 		"dev": "node --watch src/index.ts",
 		"start": "node dist/index.mjs"
 	},
@@ -14,9 +14,8 @@
 	"devDependencies": {
 		"@types/node": "^22.10.2",
 		"@types/ws": "^8.18.1",
-		"prettier": "^3.5.3",
-		"tsdown": "^0.20.3",
 		"tsx": "^4.19.2",
-		"typescript": "^5.9.3"
+		"typescript": "^5.9.3",
+		"vite-plus": "catalog:"
 	}
 }

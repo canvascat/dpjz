@@ -12,17 +12,11 @@
 		"check": "pnpm --filter web check",
 		"signaling:start": "pnpm --filter signaling start",
 		"deploy:web": "pnpm --filter web run deploy",
-		"deploy:signaling": "pnpm --filter signaling-cf deploy"
+		"deploy:signaling": "pnpm --filter signaling-cf deploy",
+		"prepare": "vp config"
 	},
 	"devDependencies": {
-		"@tanstack/eslint-config": "^0.3.0",
-		"eslint": "^9.16.0",
-		"prettier": "^3.5.3",
-		"typescript": "^5.9.3"
-	},
-	"pnpm": {
-		"overrides": {
-			"vite": "npm:rolldown-vite@latest"
-		}
+		"typescript": "^5.9.3",
+		"vite-plus": "catalog:"
 	}
 }
